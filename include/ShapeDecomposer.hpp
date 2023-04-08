@@ -2,7 +2,7 @@
 #define SHAPE_DECOMPOSER_H
 
 #include <vector>
-#include "utils.h"
+#include "utils.hpp"
 
 class ShapeDecomposer
 {

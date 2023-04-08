@@ -1,6 +1,11 @@
 #include <stdio.h>
-#include "utils.h"
+#include "utils.hpp"
 #include "ShapeDecomposer.hpp"
+#include "TrajectoryOptimizer.hpp"
+
+#include <casadi/casadi.hpp>
+
+using namespace casadi;
 
 int main()
 {
@@ -16,5 +21,13 @@ int main()
     // 2. Determine assignment using Anonymous MAPF (min cut max flow)
 
     // 3. Solve for the trajectories of each agent
+
+    TrajectoryOptimizer trajOpt;
+
+    DM start = DM::zeros(6);
+    DM goal = DM::zeros(6);
+    goal(1) = goal(2) = goal(0) = 2;
+    trajOpt.solveDoubleIntegrator(start, goal);
+
     return 0;
 }
