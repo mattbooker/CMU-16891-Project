@@ -8,8 +8,8 @@ using namespace casadi;
 class DoubleIntegrator
 {
 public:
-    const int nx = 6;
-    const int nu = 3;
+    static const int nx = 6;
+    static const int nu = 3;
 
     MX dynamics(const MX &x, const MX &u);
     MX rk4(const MX &x, const MX &u, float dt);

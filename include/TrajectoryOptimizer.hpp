@@ -4,19 +4,50 @@
 #include "casadi/casadi.hpp"
 #include "Quadcopter.hpp"
 #include "DoubleIntegrator.hpp"
+#include "utils.hpp"
+
+#include <vector>
 
 using namespace casadi;
+
+struct Params
+{
+    Point3 start;
+    Point3 goal;
+    float tf;
+    float dt;
+    int N;
+    float colRadiusSq;
+};
+
+struct iLQROptions
+{
+    int maxIters;
+    float aTol;
+
+    // Forward-pass params
+    int maxLineSearchIters;
+};
+
+struct Constraint
+{
+    MX location;
+};
+
+typedef Eigen::Matrix<float, Quadcopter::nx, Quadcopter::nx> nxByNxMatrix;
+typedef Eigen::Matrix<float, Quadcopter::nu, Quadcopter::nu> nuByNuMatrix;
+typedef Eigen::Matrix<float, Quadcopter::nx, Quadcopter::nu> nxByNuMatrix;
+typedef Eigen::Matrix<float, Quadcopter::nu, Quadcopter::nx> nuByNxMatrix;
+typedef std::vector<QuadStateVector> QuadTrajectory;
+typedef std::vector<QuadControlsVector> QuadControls;
 
 class TrajectoryOptimizer
 {
 public:
     TrajectoryOptimizer()
-        : accelLimit(2.0),
-          opti(Opti())
+        : opti(Opti())
     {
-        DM J = DM({{0.0023, 0.0, 0.0}, {0.0, 0.0023, 0.0}, {0.0, 0.0, 0.004}});
-        DM gravity = DM({0.0, 0.0, -9.81});
-        quadModel = {0.5, J, gravity, 0.1750, 1.0, 0.0245, 0.1};
+        iLQROpt = {250, 1e-3, 20};
 
         Dict options;
         options["ipopt.print_level"] = 0;
@@ -26,14 +57,54 @@ public:
         opti.solver("ipopt", options);
     }
 
-    void solveDoubleIntegrator(const DM &start, const DM &goal);
+    void solveDoubleIntegrator(const Params &params, std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution);
+    void solveQuadcopter(const Params &params, std::vector<Constraint> &constraints, QuadTrajectory &xOut, QuadControls &uOut);
 
 private:
+    void createReference(const Params &params,
+                         const DM &xDoubleIntegrator,
+                         QuadTrajectory &xRef,
+                         QuadControls &uRef);
+
+    void runILQR(const Params &params,
+                 QuadTrajectory &x,
+                 QuadControls &u,
+                 const QuadTrajectory &xRef,
+                 const QuadControls &uRef);
+
+    float backwardPassIlQR(const QuadTrajectory &x,
+                           const QuadControls &u,
+                           const QuadTrajectory &xRef,
+                           const QuadControls &uRef,
+                           const nxByNxMatrix &Q,
+                           const nxByNxMatrix &Qf,
+                           const nuByNuMatrix &R,
+                           std::vector<QuadControlsVector> &d,
+                           std::vector<nuByNxMatrix> &K);
+
+    void forwardPassILQR(QuadTrajectory &x,
+                         QuadControls &u,
+                         const QuadTrajectory &xRef,
+                         const QuadControls &uRef,
+                         const nxByNxMatrix &Q,
+                         const nxByNxMatrix &Qf,
+                         const nuByNuMatrix &R,
+                         std::vector<QuadControlsVector> &d,
+                         std::vector<nuByNxMatrix> &K);
+
+    float trajectoryCost(const QuadTrajectory &x,
+                         const QuadControls &u,
+                         const QuadTrajectory &xRef,
+                         const QuadControls &uRef,
+                         const nxByNxMatrix &Q,
+                         const nxByNxMatrix &Qf,
+                         const nuByNuMatrix &R);
+
     DoubleIntegrator doubleIntegrator;
     Quadcopter quadcopter;
-    QuadcopterModel quadModel;
 
-    float accelLimit;
+    iLQROptions iLQROpt;
+
     Opti opti;
 };
 
