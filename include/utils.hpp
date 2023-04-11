@@ -13,4 +13,20 @@ struct BoundingBox
     Point3 max;
 };
 
+struct Collision
+{
+    int agent1;
+    int agent2;
+    int t;
+
+    std::pair<Point3, Point3> location;
+};
+
+struct Constraint
+{
+    int agentNum;
+    int t;
+    Point3 location;
+};
+
 #endif
