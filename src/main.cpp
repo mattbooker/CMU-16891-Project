@@ -46,7 +46,6 @@ int main()
     for (int i = 0; i < x.size(); i++)
     {
         printf("%f, %f, %f\n", x[i](0), x[i](1), x[i](2));
-        // printf("%f, %f, %f, %f\n", u[i](0), u[i](1), u[i](2), u[i](3));
     }
 
     return 0;

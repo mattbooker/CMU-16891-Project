@@ -44,10 +44,10 @@ void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, std::vecto
     }
 
     // Add sphere collision avoidance constraint
-    for (const Constraint& c : constraints)
+    for (const Constraint &c : constraints)
     {
         // TODO: Constraint shouldnt be for entire trajectory
-        for (int i = 0; i < N - 1; i++)
+        for (int i = 0; i < N; i++)
         {
             opti.subject_to(params.colRadiusSq <= sumsqr(x(Slice(0, 3), i) - c.location));
         }
@@ -56,11 +56,11 @@ void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, std::vecto
     opti.set_initial(x, 0.01 * DM::rand(DoubleIntegrator::nx, N));
     opti.set_initial(u, 0.01 * DM::rand(DoubleIntegrator::nu, N - 1));
 
-    // auto startTime = std::chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
     OptiSol sol = opti.solve();
-    // auto stopTime = std::chrono::high_resolution_clock::now();
-    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
-    // std::cout << duration.count() * 1e-6 << std::endl;
+    auto stopTime = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
+    std::cout << duration.count() * 1e-6 << std::endl;
 
     xSolution = sol.value(x);
     uSolution = sol.value(u);
@@ -78,12 +78,6 @@ void TrajectoryOptimizer::solveQuadcopter(const Params &params, std::vector<Cons
 
     createReference(params, xDoubleIntegrator, xRef, uRef);
 
-    for (int i = 0; i < params.N; i++)
-    {
-        printf("%f, %f, %f\n", xRef[i](0), xRef[i](1), xRef[i](2));
-    }
-    printf("\n\n\n");
-
     // Use iLQR to refine trajectory to be flyable by quadrotor
     runILQR(params, xOut, uOut, xRef, uRef);
 }
@@ -91,7 +85,6 @@ void TrajectoryOptimizer::solveQuadcopter(const Params &params, std::vector<Cons
 void TrajectoryOptimizer::createReference(const Params &params, const DM &xDoubleIntegrator, QuadTrajectory &xRef, QuadControls &uRef)
 {
     std::vector<double> elements = xDoubleIntegrator.get_elements();
-
     for (int i = 0; i < params.N; i++)
     {
         // Copy positions and velocities
@@ -115,6 +108,12 @@ void TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadC
 
     // Setup cost matrices
     nxByNxMatrix Q = nxByNxMatrix::Identity();
+    Q(3, 3) = 0.1;
+    Q(4, 4) = 0.1;
+    Q(5, 5) = 0.1;
+    Q(9, 9) = 0.1;
+    Q(10, 10) = 0.1;
+    Q(11, 11) = 0.1;
     nxByNxMatrix Qf = 10 * nxByNxMatrix::Identity();
     nuByNuMatrix R = 0.1 * nuByNuMatrix::Identity();
 

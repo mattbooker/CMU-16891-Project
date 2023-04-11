@@ -86,20 +86,20 @@ private:
         float p2 = vec(1);
         float p3 = vec(2);
 
-        float den = pow(pow(p1, 2) + pow(p2, 2) + pow(p3, 2) + 1, 2);
-        float a = (4 * pow(p1, 2) + 4 * pow(p2, 2) + 4 * pow(p3, 2) - 4);
+        float den = pow(pow(p1, 2) + pow(p2, 2) + pow(p3, 2) + 1.0f, 2);
+        float a = (4.0f * pow(p1, 2) + 4.0f * pow(p2, 2) + 4.0f * pow(p3, 2) - 4.0f);
 
         Eigen::Matrix3f result = Eigen::Matrix3f::Zero();
 
-        result(0, 0) = -((8 * pow(p2, 2) + 8 * pow(p3, 2)) / den - 1) * den;
-        result(0, 1) = 8 * p1 * p2 + p3 * a;
-        result(0, 2) = 8 * p1 * p3 - p2 * a;
-        result(1, 0) = 8 * p1 * p2 - p3 * a;
-        result(1, 1) = -((8 * pow(p1, 2) + 8 * pow(p3, 2)) / den - 1) * den;
-        result(1, 2) = 8 * p2 * p3 + p1 * a;
-        result(2, 0) = 8 * p1 * p3 + p2 * a;
-        result(2, 1) = 8 * p2 * p3 - p1 * a;
-        result(2, 2) = -((8 * pow(p1, 2) + 8 * pow(p2, 2)) / den - 1) * den;
+        result(0, 0) = -((8.0f * pow(p2, 2) + 8.0f * pow(p3, 2)) / den - 1.0f) * den;
+        result(0, 1) = 8.0f * p1 * p2 + p3 * a;
+        result(0, 2) = 8.0f * p1 * p3 - p2 * a;
+        result(1, 0) = 8.0f * p1 * p2 - p3 * a;
+        result(1, 1) = -((8.0f * pow(p1, 2) + 8.0f * pow(p3, 2)) / den - 1.0f) * den;
+        result(1, 2) = 8.0f * p2 * p3 + p1 * a;
+        result(2, 0) = 8.0f * p1 * p3 + p2 * a;
+        result(2, 1) = 8.0f * p2 * p3 - p1 * a;
+        result(2, 2) = -((8.0f * pow(p1, 2) + 8.0f * pow(p2, 2)) / den - 1.0f) * den;
 
         return result / den;
     }
