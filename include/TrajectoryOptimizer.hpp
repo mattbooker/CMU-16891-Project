@@ -29,11 +29,6 @@ struct iLQROptions
     int maxLineSearchIters;
 };
 
-struct Constraint
-{
-    MX location;
-};
-
 typedef Eigen::Matrix<float, Quadcopter::nx, Quadcopter::nx> nxByNxMatrix;
 typedef Eigen::Matrix<float, Quadcopter::nu, Quadcopter::nu> nuByNuMatrix;
 typedef Eigen::Matrix<float, Quadcopter::nx, Quadcopter::nu> nxByNuMatrix;

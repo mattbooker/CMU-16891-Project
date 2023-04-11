@@ -49,7 +49,8 @@ void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, std::vecto
         // TODO: Constraint shouldnt be for entire trajectory
         for (int i = 0; i < N; i++)
         {
-            opti.subject_to(params.colRadiusSq <= sumsqr(x(Slice(0, 3), i) - c.location));
+            DM location = {c.location.x, c.location.y, c.location.z};
+            opti.subject_to(params.colRadiusSq <= sumsqr(x(Slice(0, 3), i) - location));
         }
     }
 

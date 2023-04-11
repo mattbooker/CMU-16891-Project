@@ -33,11 +33,9 @@ int main()
 
     QuadTrajectory x;
     QuadControls u;
-    Constraint b1 = {MX::ones(3)};
-    Constraint b2 = {MX::ones(3)};
-    Constraint b3 = {MX::ones(3)};
-    b2.location(2) = 2;
-    b3.location(2) = 0;
+    Constraint b1 = {0, 0, {1, 1, 1}};
+    Constraint b2 = {0, 0, {1, 1, 2}};
+    Constraint b3 = {0, 0, {1, 1, 0}};
     std::vector<Constraint> constraints = {b1, b2, b3};
 
 
