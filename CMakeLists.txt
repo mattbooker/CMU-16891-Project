@@ -11,6 +11,6 @@ find_package(Eigen3 REQUIRED)
 # Optimization flags
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3")
 
-add_executable(MultiAgentSolver src/main.cpp src/ShapeDecomposer.cpp src/Quadcopter.cpp src/TrajectoryOptimizer.cpp src/DoubleIntegrator.cpp)
+add_executable(MultiAgentSolver src/main.cpp src/ShapeDecomposer.cpp src/Quadcopter.cpp src/TrajectoryOptimizer.cpp src/DoubleIntegrator.cpp src/CBSSolver.cpp)
 target_compile_features(MultiAgentSolver PRIVATE cxx_std_17)
 target_link_libraries(MultiAgentSolver ${CASADI_LIBRARIES} Eigen3::Eigen)

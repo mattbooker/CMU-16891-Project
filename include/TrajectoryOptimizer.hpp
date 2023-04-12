@@ -33,8 +33,6 @@ typedef Eigen::Matrix<float, Quadcopter::nx, Quadcopter::nx> nxByNxMatrix;
 typedef Eigen::Matrix<float, Quadcopter::nu, Quadcopter::nu> nuByNuMatrix;
 typedef Eigen::Matrix<float, Quadcopter::nx, Quadcopter::nu> nxByNuMatrix;
 typedef Eigen::Matrix<float, Quadcopter::nu, Quadcopter::nx> nuByNxMatrix;
-typedef std::vector<QuadStateVector> QuadTrajectory;
-typedef std::vector<QuadControlsVector> QuadControls;
 
 class TrajectoryOptimizer
 {
@@ -52,8 +50,8 @@ public:
         opti.solver("ipopt", options);
     }
 
-    void solveDoubleIntegrator(const Params &params, std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution);
-    void solveQuadcopter(const Params &params, std::vector<Constraint> &constraints, QuadTrajectory &xOut, QuadControls &uOut);
+    void solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution);
+    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, QuadTrajectory &xOut, QuadControls &uOut);
 
 private:
     void createReference(const Params &params,
@@ -61,7 +59,7 @@ private:
                          QuadTrajectory &xRef,
                          QuadControls &uRef);
 
-    void runILQR(const Params &params,
+    bool runILQR(const Params &params,
                  QuadTrajectory &x,
                  QuadControls &u,
                  const QuadTrajectory &xRef,

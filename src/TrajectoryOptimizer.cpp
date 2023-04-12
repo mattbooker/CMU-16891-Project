@@ -5,7 +5,7 @@
 
 #include <exception>
 
-void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution)
+void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution)
 {
     int N = params.N;
     float dt = params.dt;
@@ -67,7 +67,7 @@ void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, std::vecto
     uSolution = sol.value(u);
 }
 
-void TrajectoryOptimizer::solveQuadcopter(const Params &params, std::vector<Constraint> &constraints, QuadTrajectory &xOut, QuadControls &uOut)
+bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, QuadTrajectory &xOut, QuadControls &uOut)
 {
     // Solve for a reference trajectory (using double integrator)
     DM xDoubleIntegrator, uDoubleIntegrator;
@@ -80,7 +80,7 @@ void TrajectoryOptimizer::solveQuadcopter(const Params &params, std::vector<Cons
     createReference(params, xDoubleIntegrator, xRef, uRef);
 
     // Use iLQR to refine trajectory to be flyable by quadrotor
-    runILQR(params, xOut, uOut, xRef, uRef);
+    return runILQR(params, xOut, uOut, xRef, uRef);
 }
 
 void TrajectoryOptimizer::createReference(const Params &params, const DM &xDoubleIntegrator, QuadTrajectory &xRef, QuadControls &uRef)
@@ -101,7 +101,7 @@ void TrajectoryOptimizer::createReference(const Params &params, const DM &xDoubl
     }
 }
 
-void TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadControls &u, const QuadTrajectory &xRef, const QuadControls &uRef)
+bool TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadControls &u, const QuadTrajectory &xRef, const QuadControls &uRef)
 {
     const int nx = Quadcopter::nx;
     const int nu = Quadcopter::nu;
@@ -141,11 +141,12 @@ void TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadC
         if (deltaJ < iLQROpt.aTol)
         {
             printf("iLQR Converged\n");
-            return;
+            return true;
         }
     }
 
-    throw std::logic_error("iLQR failed");
+    printf("iLQR Failed\n");
+    return false;
 }
 
 float TrajectoryOptimizer::backwardPassIlQR(const QuadTrajectory &x,
