@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <vector>
+#include <eigen3/Eigen/Core>
 
 struct Point3
 {
@@ -35,14 +36,14 @@ struct Collision
     int agent2;
     int t;
 
-    std::pair<Point3, Point3> location;
+    std::pair<Eigen::Vector3d, Eigen::Vector3d> location;
 };
 
 struct Constraint
 {
     int agentNum;
     int t;
-    Point3 location;
+    Eigen::Vector3d location;
 };
 
 #endif

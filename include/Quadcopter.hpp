@@ -20,6 +20,7 @@ struct QuadcopterModel
 typedef Eigen::Matrix<float, 12, 1> QuadStateVector;
 typedef Eigen::Matrix<float, 4, 1> QuadControlsVector;
 typedef std::vector<QuadStateVector> QuadTrajectory;
+typedef std::vector<QuadTrajectory> InstancePlan;
 typedef std::vector<QuadControlsVector> QuadControls;
 
 class Quadcopter
