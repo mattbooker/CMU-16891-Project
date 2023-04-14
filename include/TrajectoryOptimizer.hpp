@@ -83,7 +83,8 @@ private:
                          const nxByNxMatrix &Qf,
                          const nuByNuMatrix &R,
                          std::vector<QuadControlsVector> &d,
-                         std::vector<nuByNxMatrix> &K);
+                         std::vector<nuByNxMatrix> &K,
+                         float deltaJ);
 
     float trajectoryCost(const QuadTrajectory &x,
                          const QuadControls &u,

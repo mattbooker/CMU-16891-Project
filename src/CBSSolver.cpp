@@ -2,7 +2,7 @@
 #include <queue>
 
 CBSSolver::CBSSolver()
-    : numNodesGenerated(0), colRadiusSq(1.0)
+    : numNodesGenerated(0), colRadiusSq(0.08)
 {
 }
 
@@ -13,7 +13,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
-    params.tf = 3.0;
+    params.tf = 5.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
     params.colRadiusSq = powf(colRadiusSq, 2.0);
@@ -40,10 +40,10 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
             throw NoSolutionException();
     }
 
+    printf("Initial Solutions complete\n");
+
     root->cost = computeCost(root->paths);
-    printf("a\n");
     detectCollisions(root->paths, root->collisionList);
-    printf("b\n");
 
     pq.push(root);
 
@@ -52,19 +52,15 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
         CTNodeSharedPtr cur = pq.top();
         pq.pop();
 
-        printf("a\n");
-
         // If no collisions in the node then return solution
         if (cur->collisionList.size() == 0)
         {
             return cur->paths;
         }
-        printf("b\n");
 
         // Get first collision and create two nodes (each containing a new plan for the two agents in the collision)
         for (Constraint &c : resolveCollision(cur->collisionList[0]))
         {
-            printf("c\n");
             // Add new constraint
             CTNodeSharedPtr child = std::make_shared<CTNode>();
             child->constraintList = cur->constraintList;
@@ -72,7 +68,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
             child->paths = cur->paths;
             // printf("New cons = %d (%d,%d) %d @ %d\n", c.agentNum, c.location.first.x, c.location.first.y, c.isVertexConstraint, c.t);
 
-            printf("d\n");
             // Replan only for the agent that has the new constraint
             // printf("Before = %d %d\n", child->paths[c.agentNum].size(), computeCost(child->paths));
             child->paths[c.agentNum].clear();
@@ -81,7 +76,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
             QuadControls unused;
             bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, child->paths[c.agentNum], unused);
             // printf("After = %d %d\n", child->paths[c.agentNum].size(), computeCost(child->paths));
-            printf("e\n");
 
             if (success)
             {
@@ -139,15 +133,13 @@ void CBSSolver::getCollisionsAgents(QuadTrajectory agent1, QuadTrajectory agent2
 
     for (int i = 0; i < agent1.size() - 2; i++)
     {
-        printf("x\n");
-        Eigen::Vector3f a1_pos1 = agent1[i](Eigen::seq(0, 3));
-        Eigen::Vector3f a1_pos2 = agent1[i + 1](Eigen::seq(0, 3));
-        printf("y\n");
+        Eigen::Vector3f a1_pos1 = agent1[i](Eigen::seq(0, 2));
+        Eigen::Vector3f a1_pos2 = agent1[i + 1](Eigen::seq(0, 2));
 
         getLineEq(a1_pos1, a1_pos2, line1);
 
-        Eigen::Vector3f a2_pos1 = agent2[i](Eigen::seq(0, 3));
-        Eigen::Vector3f a2_pos2 = agent2[i + 1](Eigen::seq(0, 3));
+        Eigen::Vector3f a2_pos1 = agent2[i](Eigen::seq(0, 2));
+        Eigen::Vector3f a2_pos2 = agent2[i + 1](Eigen::seq(0, 2));
 
         getLineEq(a2_pos1, a2_pos2, line2);
 
@@ -159,9 +151,7 @@ void CBSSolver::getCollisionsAgents(QuadTrajectory agent1, QuadTrajectory agent2
 
         if (shortest_dist_sq <= colRadiusSq)
         {
-            printf("before\n");
             collisionList.push_back({a1, a2, i, std::make_pair(points1, points2)});
-            printf("after\n");
         }
     }
 }

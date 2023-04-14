@@ -28,7 +28,7 @@ void TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
     MX x = opti.variable(DoubleIntegrator::nx, N);
     MX u = opti.variable(DoubleIntegrator::nu, N - 1);
 
-    opti.minimize(doubleIntegrator.computeCost(Q, Qf, R, x, u, N, dt));
+    opti.minimize(doubleIntegrator.computeCost(Q, Qf, R, x, u, goal, N, dt));
 
     // Add start and goal constraints
     opti.subject_to(x(Slice(), 0) == start);
@@ -136,7 +136,7 @@ bool TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadC
     for (int i = 0; i < iLQROpt.maxIters; i++)
     {
         deltaJ = backwardPassIlQR(x, u, xRef, uRef, Q, Qf, R, d, K);
-        forwardPassILQR(x, u, xRef, uRef, Q, Qf, R, d, K);
+        forwardPassILQR(x, u, xRef, uRef, Q, Qf, R, d, K, deltaJ);
 
         if (deltaJ < iLQROpt.aTol)
         {
@@ -160,8 +160,8 @@ float TrajectoryOptimizer::backwardPassIlQR(const QuadTrajectory &x,
                                             std::vector<nuByNxMatrix> &K)
 {
     float deltaJ = 0;
-    int nx = Quadcopter::nx;
-    int nu = Quadcopter::nu;
+    const int nx = Quadcopter::nx;
+    const int nu = Quadcopter::nu;
     int N = x.size();
 
     std::vector<nxByNxMatrix> P(N, nxByNxMatrix::Zero());
@@ -240,6 +240,17 @@ float TrajectoryOptimizer::backwardPassIlQR(const QuadTrajectory &x,
 
         deltaJ += g_u.transpose() * d[k];
     }
+    Eigen::Matrix<float, nx + nu, nx + nu> full;
+
+    full.block<nx, nx>(0, 0) = G_xx;
+    full.block<nx, nu>(0, nx) = G_xu;
+    full.block<nu, nx>(nx, 0) = G_ux;
+    full.block<nu, nu>(nx, nx) = G_uu;
+
+    Eigen::EigenSolver<Eigen::Matrix<float, nx + nu, nx + nu>> es(full);
+
+    std::cout << es.eigenvalues() << std::endl;
+    std::cout << std::endl;
 
     return deltaJ;
 }
@@ -252,11 +263,13 @@ void TrajectoryOptimizer::forwardPassILQR(QuadTrajectory &x,
                                           const nxByNxMatrix &Qf,
                                           const nuByNuMatrix &R,
                                           std::vector<QuadControlsVector> &d,
-                                          std::vector<nuByNxMatrix> &K)
+                                          std::vector<nuByNxMatrix> &K,
+                                          float deltaJ)
 {
     float alpha = 1.0f;
     float originalCost = trajectoryCost(x, u, xRef, uRef, Q, Qf, R);
     float updatedCost = 0;
+    const float beta = 0.001;
 
     QuadTrajectory newX(x.size(), x[0]);
     QuadControls newU(x.size(), u[0]);
@@ -273,7 +286,9 @@ void TrajectoryOptimizer::forwardPassILQR(QuadTrajectory &x,
         alpha /= 2;
         updatedCost = trajectoryCost(newX, newU, xRef, uRef, Q, Qf, R);
 
-        if (updatedCost < originalCost)
+        printf("%f %f %f\n", alpha, updatedCost, originalCost);
+
+        if (updatedCost < originalCost - beta * deltaJ)
         {
             // Copy over the new trajectory + controls
             x = newX;

@@ -8,7 +8,7 @@ using namespace casadi;
 
 int main()
 {
-    const int numAgents = 3;
+    const int numAgents = 8;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
 
     // Presteps: Get as input a shape
@@ -20,13 +20,33 @@ int main()
     // 2. Determine assignment using Anonymous MAPF (min cut max flow)
 
     // 3. Solve for the trajectories of each agent
-    std::vector<Point3> starts = {{-3, -3, -3}, {1, -3, -3}, {2, -3, -3}};
+    std::vector<Point3> starts;
+
+    for (int i = 0; i < numAgents; i++)
+    {
+        starts.push_back({-4 + i, -4, -4});
+    }
 
     CBSSolver solver;
 
     MAPFInstance problem = {numAgents, envBbox, starts, endpoints};
 
-    solver.solve(problem);
+    std::vector<QuadTrajectory> answer = solver.solve(problem);
+
+    for (int i = 0; i < numAgents; i++)
+    {
+        printf("(%f, %f, %f) -> (%f, %f, %f)\n", starts[i].x, starts[i].y, starts[i].z, endpoints[i].x, endpoints[i].y, endpoints[i].z);
+    }
+
+    for (int i = 0; i < answer.size(); i++)
+    {
+        for (int j = 0; j < answer[i].size(); j++)
+        {
+            printf("%f, %f, %f\n", answer[i][j](0), answer[i][j](1), answer[i][j](2));
+        }
+
+        printf("---\n");
+    }
 
     return 0;
 }

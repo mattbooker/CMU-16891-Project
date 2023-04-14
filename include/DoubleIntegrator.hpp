@@ -14,7 +14,7 @@ public:
     MX dynamics(const MX &x, const MX &u);
     MX rk4(const MX &x, const MX &u, float dt);
 
-    MX computeCost(const DM &Q, const DM &Qf, const DM &R, const MX &x, const MX &u, int N, float dt);
+    MX computeCost(const DM &Q, const DM &Qf, const DM &R, const MX &x, const MX &u, const DM &xGoal, int N, float dt);
 };
 
 #endif
