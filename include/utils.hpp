@@ -36,14 +36,14 @@ struct Collision
     int agent2;
     int t;
 
-    std::pair<Eigen::Vector3d, Eigen::Vector3d> location;
+    std::pair<Eigen::Vector3f, Eigen::Vector3f> location;
 };
 
 struct Constraint
 {
     int agentNum;
     int t;
-    Eigen::Vector3d location;
+    Eigen::Vector3f location;
 };
 
 #endif

@@ -4,14 +4,16 @@
 #include <memory>
 #include <vector>
 #include "utils.hpp"
+#include "TrajectoryOptimizer.hpp"
 #include "Quadcopter.hpp"
+#include <utility>
 
 class CBSSolver
 {
 public:
     CBSSolver();
 
-    std::vector<QuadTrajectory> solve(const MAPFInstance& instance);
+    std::vector<QuadTrajectory> solve(const MAPFInstance &instance);
 
 private:
     int inline computeCost(const std::vector<QuadTrajectory> &paths);
@@ -19,6 +21,10 @@ private:
     inline bool detectCollision(int agent1, int agent2, const QuadTrajectory &pathA, const QuadTrajectory &pathB, Collision &col);
     // inline Point3 getLocation(const QuadTrajectory &path, int t);
     inline std::vector<Constraint> resolveCollision(const Collision &col);
+
+    void getCollisionsAgents(QuadTrajectory agent1, QuadTrajectory agent2, int a1, int a2, std::vector<Collision> &collisionList);
+    void inline getLineEq(Eigen::Vector3f pos1, Eigen::Vector3f pos2, Eigen::Vector3f &line);
+    std::pair<float, float> findSolution(Eigen::Vector3f a1_pos1, Eigen::Vector3f a2_pos1, Eigen::Vector3f line1, Eigen::Vector3f line2);
 
     struct CTNode
     {
@@ -54,11 +60,12 @@ private:
     {
         char *what()
         {
-            return (char*)"No Solution exists for the given MAPF instance";
+            return (char *)"No Solution exists for the given MAPF instance";
         }
     };
 
     int numNodesGenerated;
+    float colRadiusSq;
 };
 
 #endif

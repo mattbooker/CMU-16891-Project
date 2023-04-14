@@ -1,9 +1,8 @@
 #include "CBSSolver.hpp"
-#include "TrajectoryOptimizer.hpp"
 #include <queue>
 
 CBSSolver::CBSSolver()
-: numNodesGenerated(0)
+: numNodesGenerated(0), colRadiusSq(1.0)
 {
 }
 
@@ -17,7 +16,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance& instance)
     params.tf = 3.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
-    params.colRadiusSq = pow(0.8 + 0.2, 2.0);
+    params.colRadiusSq = powf(colRadiusSq, 2.0);
 
     // Create priority queue
     std::priority_queue <CTNodeSharedPtr, 
@@ -56,8 +55,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance& instance)
         {
             return cur->paths;
         }
-
-        printf("%f\n", cur->cost);
 
         // Get first collision and create two nodes (each containing a new plan for the two agents in the collision)
         for (Constraint &c : resolveCollision(cur->collisionList[0]))
@@ -119,44 +116,84 @@ void CBSSolver::detectCollisions(const std::vector<QuadTrajectory> &paths, std::
     {
         for (int j = i + 1; j < paths.size(); j++)
         {
-            if (detectCollision(i, j, paths[i], paths[j], col))
-                collisionList.push_back(col);
+            getCollisionsAgents(paths[i], paths[j], i, j, collisionList);
         }
     }
 }
 
-inline bool CBSSolver::detectCollision(int agent1, int agent2, const QuadTrajectory &pathA, const QuadTrajectory &pathB, Collision &col)
-{
-    // TODO
-    // int maxTime = std::max(pathA.size(), pathB.size());
-
-    // for (int t = 0; t < maxTime; t++)
-    // {
-    //     if (getLocation(pathA, t) == getLocation(pathB, t))
-    //     {
-    //         col = createVertexCollision(agent1, agent2, t, getLocation(pathA, t));
-    //         return true;
-    //     }
-
-    //     if (getLocation(pathA, t) == getLocation(pathB, t + 1) && getLocation(pathA, t + 1) == getLocation(pathB, t))
-    //     {
-    //         col = createEdgeCollision(agent1, agent2, t + 1, getLocation(pathA, t), getLocation(pathA, t + 1));
-    //         return true;
-    //     }
-    // }
-
-    return false;
-}
-
-// inline Point3 CBSSolver::getLocation(const QuadTrajectory &path, int t)
-// {
-//     if (t >= path.size())
-//         return path[path.size() - 1];
-//     else
-//         return path[t];
-// }
-
 inline std::vector<Constraint> CBSSolver::resolveCollision(const Collision& col)
 {
     return std::vector<Constraint> {Constraint{col.agent1, col.t, col.location.second}, Constraint{col.agent2, col.t, col.location.first}};
+}
+
+void CBSSolver::getCollisionsAgents(QuadTrajectory agent1, QuadTrajectory agent2, int a1, int a2, std::vector<Collision> &collisionList)
+{
+    Eigen::Vector3f line1;
+    Eigen::Vector3f line2;
+
+    for (int i=0; i<agent1.size()-2; i++)
+    {
+        Eigen::Vector3f a1_pos1 = agent1[i](Eigen::seq(0,3));
+        Eigen::Vector3f a1_pos2 = agent1[i + 1](Eigen::seq(0,3));
+
+        getLineEq(a1_pos1, a1_pos2, line1);
+
+        Eigen::Vector3f a2_pos1 = agent2[i](Eigen::seq(0,3));
+        Eigen::Vector3f a2_pos2 = agent2[i + 1](Eigen::seq(0,3));
+
+        getLineEq(a2_pos1, a2_pos2, line2);
+
+        auto ans = findSolution(a1_pos1, a2_pos1, line1, line2);
+        Eigen::Vector3f points1 = a1_pos1 + ans.first * line1;
+        Eigen::Vector3f points2 = a2_pos1 + ans.second * line2;
+
+        float shortest_dist_sq = powf(points2[0] - points1[0], 2) + powf(points2[1] - points1[1], 2) + powf(points2[2] - points1[2], 2);
+
+        if (shortest_dist_sq < colRadiusSq)
+        {
+            collisionList.push_back({a1, a2, i, std::make_pair(points1, points2)});
+        }
+    }
+}
+
+void inline CBSSolver::getLineEq(Eigen::Vector3f pos1, Eigen::Vector3f pos2, Eigen::Vector3f &line)
+{
+    //get line equation between points
+    line[0] = pos2[0] - pos1[0]; 
+    line[1] = pos2[1] - pos1[1]; 
+    line[2] = pos2[2] - pos1[2];
+}
+
+std::pair<float, float> CBSSolver::findSolution(Eigen::Vector3f a1_pos1, Eigen::Vector3f a2_pos1, Eigen::Vector3f line1, Eigen::Vector3f line2)
+{
+    float A[2][2] = {
+        {powf(line1[0], 2) + powf(line1[1], 2) + powf(line1[2], 2), -(line1[0]*line2[0] + line1[1]*line2[1] + line1[2]*line2[2])},
+        {line1[0]*line2[0] + line1[1]*line2[1] + line1[2]*line2[2], -(powf(line2[0], 2) + powf(line2[1], 2) + powf(line2[2], 2))}
+    };
+    
+    float B[2][1] = {
+        {-(a1_pos1[0]*line1[0] - a2_pos1[0]*line1[0] + a1_pos1[1]*line1[1] - a2_pos1[1]*line1[1] + a1_pos1[2]*line1[2] - a2_pos1[2]*line1[2])},
+        {-(a1_pos1[0]*line2[0] - a2_pos1[0]*line2[0] + a1_pos1[1]*line2[1] - a2_pos1[1]*line2[1] + a1_pos1[2]*line2[2] - a2_pos1[2]*line2[2])}
+    };
+
+    float det_A = (A[0][0] * A[1][1]) - (A[0][1] * A[1][0]);
+    float det_X = (B[0][0] * A[1][1]) - (B[1][0] * A[0][1]);
+    float det_Y = (A[0][0] * B[1][0]) - (A[1][0] * B[0][0]);
+
+    float x = det_X / det_A;
+    if (x > 1){
+        x = 1;
+    }
+    else if (x < 0){
+        x = 0;
+    }
+    float y = det_Y / det_A;
+    if (y > 1){
+        y = 1;
+    }
+    else if (y < 0){
+        y = 0;
+    }
+
+    return std::make_pair(x, y);
 }
