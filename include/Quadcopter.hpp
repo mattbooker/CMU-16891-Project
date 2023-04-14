@@ -28,7 +28,7 @@ class Quadcopter
 public:
     Quadcopter()
     {
-        model = {0.5, {0.0023, 0.0023, 0.004}, 0.1750, 1.0, 0.0245, 0.1, 2.0};
+        model = {0.5, {0.0023, 0.0023, 0.004}, 0.1750, 1.0, 0.0245, 0.1, 4.0};
 
         gravity_casadi = MX::zeros(3, 1);
         gravity_casadi(2) = -9.81;
