@@ -5,7 +5,7 @@
 
 #include <exception>
 
-bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution)
+bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution)
 {
     int N = params.N;
     float dt = params.dt;
@@ -55,40 +55,58 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
         // for (int t = min_time; t <= max_time; t++)
         // {
         //     DM location = {c.location[0], c.location[1], c.location[2]};
-        //     opti.subject_to(params.colRadiusSq <= sumsqr(x(Slice(0, 3), t) - location));
+        //     opti.subject_to(params.colRadiusSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
         // }
 
         for (int t = 0; t < N; t++)
         {
             DM location = {c.location[0], c.location[1], c.location[2]};
-            opti.subject_to(params.colRadiusSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
+            opti.subject_to(params.colDistSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
         }
 
         std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
     }
 
-    DM initX = 0.01 * DM::rand(DoubleIntegrator::nx, N);
-    initX(Slice(), 0) = start;
-    initX(Slice(), N - 1) = goal;
-    float stepX = (params.goal.x - params.start.x) / N;
-    float stepY = (params.goal.y - params.start.y) / N;
-    float stepZ = (params.goal.z - params.start.z) / N;
+    DM initX = DM::zeros(DoubleIntegrator::nx, N);
 
-    for (int i = 1; i < N - 1; i++)
+    if (prev.size() == 0)
     {
-        initX(0, i) = initX(0, i - 1) + stepX;
-        initX(1, i) = initX(1, i - 1) + stepY;
-        initX(2, i) = initX(2, i - 1) + stepZ;
+        initX(Slice(), 0) = start;
+        initX(Slice(), N - 1) = goal;
+        float stepX = (params.goal.x - params.start.x) / N;
+        float stepY = (params.goal.y - params.start.y) / N;
+        float stepZ = (params.goal.z - params.start.z) / N;
+
+        for (int i = 1; i < N - 1; i++)
+        {
+            initX(0, i) = initX(0, i - 1) + stepX;
+            initX(1, i) = initX(1, i - 1) + stepY;
+            initX(2, i) = initX(2, i - 1) + stepZ;
+            initX(3, i) = 0;
+            initX(4, i) = 0;
+            initX(5, i) = 0;
+        }
+    }
+    else
+    {
+        for (int i = 0; i < prev.size(); i++)
+        {
+            initX(0, i) = prev[i](0);
+            initX(1, i) = prev[i](1);
+            initX(2, i) = prev[i](2);
+            initX(3, i) = prev[i](3);
+            initX(4, i) = prev[i](4);
+            initX(5, i) = prev[i](5);
+        }
     }
 
-    // opti.set_initial(x, 0.01 * DM::rand(DoubleIntegrator::nx, N));
     opti.set_initial(x, initX);
     opti.set_initial(u, 0.01 * DM::rand(DoubleIntegrator::nu, N - 1));
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    try {
-
+    try
+    {
         OptiSol sol = opti.solve();
         xSolution = sol.value(x);
         uSolution = sol.value(u);
@@ -96,23 +114,24 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
     catch (CasadiException e)
     {
         std::cout << "DI Solver failed: " << e.what() << std::endl;
+
         return false;
     }
     auto stopTime = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
 
-    if(verbose)
+    if (verbose)
         std::cout << duration.count() * 1e-6 << std::endl;
 
     return true;
 }
 
-bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, QuadTrajectory &xOut)
+bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, QuadTrajectory &xOut)
 {
     // Solve for a reference trajectory (using double integrator)
     DM xDoubleIntegrator, uDoubleIntegrator;
 
-    bool result = solveDoubleIntegrator(params, constraints, xDoubleIntegrator, uDoubleIntegrator);
+    bool result = solveDoubleIntegrator(params, constraints, prev, xDoubleIntegrator, uDoubleIntegrator);
 
     if (!result)
         return false;
@@ -185,7 +204,6 @@ bool TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadC
     {
         deltaJ = backwardPassIlQR(x, u, xRef, uRef, Q, Qf, R, d, K);
         forwardPassILQR(x, u, xRef, uRef, Q, Qf, R, d, K, deltaJ);
-
 
         if (deltaJ < iLQROpt.aTol)
         {

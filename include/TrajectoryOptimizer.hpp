@@ -17,7 +17,7 @@ struct Params
     float tf;
     float dt;
     int N;
-    float colRadiusSq;
+    float colDistSq;
 };
 
 struct iLQROptions
@@ -50,8 +50,8 @@ public:
         opti.solver("ipopt", options);
     }
 
-    bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution);
-    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, QuadTrajectory &xOut);
+    bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution);
+    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, QuadTrajectory &xOut);
 
 private:
     void createReference(const Params &params,

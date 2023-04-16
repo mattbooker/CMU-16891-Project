@@ -11,7 +11,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     params.tf = 5.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
-    params.colRadiusSq = colRadiusSq;
+    params.colDistSq = colDistSq;
 
     // Create priority queue
     std::priority_queue<CTNodeSharedPtr,
@@ -28,7 +28,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     {
         params.start = instance.startLocs[i];
         params.goal = instance.goalLocs[i];
-        bool found = lowLevelSolver.solveQuadcopter(params, root->constraintList, root->paths[i]);
+        bool found = lowLevelSolver.solveQuadcopter(params, root->constraintList, QuadTrajectory(), root->paths[i]);
 
         if (!found)
             throw NoSolutionException();
@@ -61,27 +61,31 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
             child->paths = cur->paths;
 
             // Replan only for the agent that has the new constraint
-            // std::cout << "Before: ";
 
+            // std::cout << "Before:\n";
             // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
             // {
-            //     std::cout << child->paths[c.agentNum][i](Eigen::seq(0, 2)).transpose() << ", ";
+            //     std::cout << child->paths[c.agentNum][i](0) << ", " << child->paths[c.agentNum][i](1) << ", " << child->paths[c.agentNum][i](2) << std::endl;
             // }
-            // std::cout << std::endl;
 
+            QuadTrajectory prev = child->paths[c.agentNum];
             child->paths[c.agentNum].clear();
             params.start = instance.startLocs[c.agentNum];
             params.goal = instance.goalLocs[c.agentNum];
 
-            bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, child->paths[c.agentNum]);
+            bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, prev, child->paths[c.agentNum]);
 
-            // std::cout << "After: ";
-
+            // std::cout << "After:\n";
             // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
             // {
-            //     std::cout << child->paths[c.agentNum][i](Eigen::seq(0, 2)).transpose() << ", ";
+            //     std::cout << child->paths[c.agentNum][i](0) << ", " << child->paths[c.agentNum][i](1) << ", " << child->paths[c.agentNum][i](2) << std::endl;
             // }
-            // std::cout << std::endl;
+            // printf("-----------\n");
+            
+            // for(int i = 0; i < child->paths[1 - c.agentNum].size(); i++)
+            // {
+            //     std::cout << child->paths[1 - c.agentNum][i](0) << ", " << child->paths[1 - c.agentNum][i](1) << ", " << child->paths[1 - c.agentNum][i](2) << std::endl;
+            // }
 
             if (success)
             {
@@ -101,13 +105,17 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     throw NoSolutionException();
 }
 
-int inline CBSSolver::computeCost(const std::vector<QuadTrajectory> &paths)
+float inline CBSSolver::computeCost(const std::vector<QuadTrajectory> &paths)
 {
-    int result = 0;
+    float result = 0;
 
+    // Cost of a node is the total length of all paths
     for (int i = 0; i < paths.size(); i++)
     {
-        result += paths[i].size() - 1;
+        for (int j = 1; j < paths[i].size(); j++)
+        {
+            result += (paths[i][j](Eigen::seq(0,2)) - paths[i][j - 1](Eigen::seq(0,2))).norm();
+        }
     }
 
     return result;
@@ -153,9 +161,9 @@ void CBSSolver::getCollisionsAgents(QuadTrajectory agent1, QuadTrajectory agent2
         Eigen::Vector3f points1 = a1_pos1 + ans.first * line1;
         Eigen::Vector3f points2 = a2_pos1 + ans.second * line2;
 
-        float shortest_dist_sq = powf(points2[0] - points1[0], 2) + powf(points2[1] - points1[1], 2) + powf(points2[2] - points1[2], 2);
+        float shortest_dist = powf(powf(points2[0] - points1[0], 2) + powf(points2[1] - points1[1], 2) + powf(points2[2] - points1[2], 2), 0.5);
 
-        if (shortest_dist_sq <= colRadiusSq)
+        if (shortest_dist <= powf(colDistSq, 0.5))
         {
             collisionList.push_back({a1, a2, i, std::make_pair(points1, points2)});
         }

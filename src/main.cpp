@@ -8,7 +8,7 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    const int numAgents = 3;
+    const int numAgents = 2;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
 
     // Presteps: Get as input a shape
@@ -16,16 +16,14 @@ int main(int argv, char *argc[])
     // 1. Get endpoints for N number of agents from shape decomposer
     ShapeDecomposer decomposer(numAgents, envBbox);
     // std::vector<Point3> endpoints = decomposer.decomposeShape();
-    std::vector<Point3> endpoints = {{0, 2, 3}, {0, 2, 1}, {0, 2, 2}};
+
+    std::vector<Point3> starts = {{0, 0, 1}, {0, 0, 2}};
+    std::vector<Point3> endpoints = {{0, 2, -1}, {0, 2, -2}};
 
     // 2. Determine assignment using Anonymous MAPF (min cut max flow)
 
     // 3. Solve for the trajectories of each agent
-    std::vector<Point3> starts = {{0,0, 1}, {0, 0, 2}, {0, 0, 3}};
     // float width = envBbox.max.x - envBbox.min.x;
-
-    
-    
 
     // for (int i = 0; i < numAgents; i++)
     // {

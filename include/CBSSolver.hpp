@@ -13,14 +13,14 @@ class CBSSolver
 public:
     CBSSolver()
         : numNodesGenerated(0), 
-        colRadiusSq(0.25)
+        colDistSq(0.25)
     {
     }
 
     std::vector<QuadTrajectory> solve(const MAPFInstance &instance);
 
 private:
-    int inline computeCost(const std::vector<QuadTrajectory> &paths);
+    float inline computeCost(const std::vector<QuadTrajectory> &paths);
     void detectCollisions(const std::vector<QuadTrajectory> &paths, std::vector<Collision> &collisionList);
     inline bool detectCollision(int agent1, int agent2, const QuadTrajectory &pathA, const QuadTrajectory &pathB, Collision &col);
     // inline Point3 getLocation(const QuadTrajectory &path, int t);
@@ -69,7 +69,7 @@ private:
     };
 
     int numNodesGenerated;
-    float colRadiusSq;
+    float colDistSq;
 };
 
 #endif
