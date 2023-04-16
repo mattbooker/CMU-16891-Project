@@ -85,17 +85,17 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 
             bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, prev, child->paths[c.agentNum], c.agentNum);
 
-            // std::cout << "After:\n";
-            // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
-            // {
-            //     std::cout << child->paths[c.agentNum][i](0) << ", " << child->paths[c.agentNum][i](1) << ", " << child->paths[c.agentNum][i](2) << std::endl;
-            // }
-            // printf("-----------\n");
+            std::cout << "After:\n";
+            for(int i = 0; i < child->paths[c.agentNum].size(); i++)
+            {
+                std::cout << child->paths[c.agentNum][i](0) << ", " << child->paths[c.agentNum][i](1) << ", " << child->paths[c.agentNum][i](2) << std::endl;
+            }
+            printf("-----------\n");
             
-            // for(int i = 0; i < child->paths[1 - c.agentNum].size(); i++)
-            // {
-            //     std::cout << child->paths[1 - c.agentNum][i](0) << ", " << child->paths[1 - c.agentNum][i](1) << ", " << child->paths[1 - c.agentNum][i](2) << std::endl;
-            // }
+            for(int i = 0; i < child->paths[1 - c.agentNum].size(); i++)
+            {
+                std::cout << child->paths[1 - c.agentNum][i](0) << ", " << child->paths[1 - c.agentNum][i](1) << ", " << child->paths[1 - c.agentNum][i](2) << std::endl;
+            }
 
             if (success)
             {
