@@ -11,7 +11,11 @@
 class CBSSolver
 {
 public:
-    CBSSolver();
+    CBSSolver()
+        : numNodesGenerated(0), 
+        colRadiusSq(0.25)
+    {
+    }
 
     std::vector<QuadTrajectory> solve(const MAPFInstance &instance);
 

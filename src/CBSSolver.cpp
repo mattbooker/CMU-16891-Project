@@ -1,11 +1,6 @@
 #include "CBSSolver.hpp"
 #include <queue>
 
-CBSSolver::CBSSolver()
-    : numNodesGenerated(0), colRadiusSq(0.08)
-{
-}
-
 std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 {
     printf("Starting CBS Solver\n");
@@ -16,7 +11,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     params.tf = 5.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
-    params.colRadiusSq = powf(colRadiusSq, 2.0);
+    params.colRadiusSq = colRadiusSq;
 
     // Create priority queue
     std::priority_queue<CTNodeSharedPtr,
@@ -33,14 +28,11 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     {
         params.start = instance.startLocs[i];
         params.goal = instance.goalLocs[i];
-        QuadControls unused;
-        bool found = lowLevelSolver.solveQuadcopter(params, root->constraintList, root->paths[i], unused);
+        bool found = lowLevelSolver.solveQuadcopter(params, root->constraintList, root->paths[i]);
 
         if (!found)
             throw NoSolutionException();
     }
-
-    printf("Initial Solutions complete\n");
 
     root->cost = computeCost(root->paths);
     detectCollisions(root->paths, root->collisionList);
@@ -49,6 +41,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 
     while (!pq.empty())
     {
+        printf("Solving new node\n");
         CTNodeSharedPtr cur = pq.top();
         pq.pop();
 
@@ -66,16 +59,29 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
             child->constraintList = cur->constraintList;
             child->constraintList.push_back(c);
             child->paths = cur->paths;
-            // printf("New cons = %d (%d,%d) %d @ %d\n", c.agentNum, c.location.first.x, c.location.first.y, c.isVertexConstraint, c.t);
 
             // Replan only for the agent that has the new constraint
-            // printf("Before = %d %d\n", child->paths[c.agentNum].size(), computeCost(child->paths));
+            // std::cout << "Before: ";
+
+            // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
+            // {
+            //     std::cout << child->paths[c.agentNum][i](Eigen::seq(0, 2)).transpose() << ", ";
+            // }
+            // std::cout << std::endl;
+
             child->paths[c.agentNum].clear();
             params.start = instance.startLocs[c.agentNum];
-            params.goal = instance.startLocs[c.agentNum];
-            QuadControls unused;
-            bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, child->paths[c.agentNum], unused);
-            // printf("After = %d %d\n", child->paths[c.agentNum].size(), computeCost(child->paths));
+            params.goal = instance.goalLocs[c.agentNum];
+
+            bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, child->paths[c.agentNum]);
+
+            // std::cout << "After: ";
+
+            // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
+            // {
+            //     std::cout << child->paths[c.agentNum][i](Eigen::seq(0, 2)).transpose() << ", ";
+            // }
+            // std::cout << std::endl;
 
             if (success)
             {

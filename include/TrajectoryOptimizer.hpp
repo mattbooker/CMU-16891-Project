@@ -38,7 +38,7 @@ class TrajectoryOptimizer
 {
 public:
     TrajectoryOptimizer()
-        : opti(Opti())
+        : opti(Opti()), verbose(true)
     {
         iLQROpt = {250, 1e-3, 20};
 
@@ -50,8 +50,8 @@ public:
         opti.solver("ipopt", options);
     }
 
-    void solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution);
-    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, QuadTrajectory &xOut, QuadControls &uOut);
+    bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, DM &xSolution, DM &uSolution);
+    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, QuadTrajectory &xOut);
 
 private:
     void createReference(const Params &params,
@@ -100,6 +100,8 @@ private:
     iLQROptions iLQROpt;
 
     Opti opti;
+
+    bool verbose;
 };
 
 #endif
