@@ -5,7 +5,7 @@
 
 #include <exception>
 
-bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution)
+bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution, int agentNum)
 {
     int N = params.N;
     float dt = params.dt;
@@ -60,11 +60,16 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
 
         for (int t = 0; t < N; t++)
         {
-            DM location = {c.location[0], c.location[1], c.location[2]};
-            opti.subject_to(params.colDistSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
+            if (c.agentNum == agentNum)
+            {
+                DM location = {c.location[0], c.location[1], c.location[2]};
+                opti.subject_to(params.colDistSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
+
+                if (t == 0)
+                    std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
+            }
         }
 
-        std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
     }
 
     DM initX = DM::zeros(DoubleIntegrator::nx, N);
@@ -126,12 +131,12 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
     return true;
 }
 
-bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, QuadTrajectory &xOut)
+bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, QuadTrajectory &xOut, int agentNum)
 {
     // Solve for a reference trajectory (using double integrator)
     DM xDoubleIntegrator, uDoubleIntegrator;
 
-    bool result = solveDoubleIntegrator(params, constraints, prev, xDoubleIntegrator, uDoubleIntegrator);
+    bool result = solveDoubleIntegrator(params, constraints, prev, xDoubleIntegrator, uDoubleIntegrator, agentNum);
 
     if (!result)
         return false;

@@ -50,8 +50,8 @@ public:
         opti.solver("ipopt", options);
     }
 
-    bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution);
-    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, QuadTrajectory &xOut);
+    bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution, int agentNum);
+    bool solveQuadcopter(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, QuadTrajectory &xOut, int agentNum);
 
 private:
     void createReference(const Params &params,

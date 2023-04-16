@@ -5,10 +5,12 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 {
     printf("Starting CBS Solver\n");
 
+    float baseTf = 5.0;
+
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
-    params.tf = 5.0;
+    params.tf = baseTf;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
     params.colDistSq = colDistSq;
@@ -23,12 +25,20 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     root->paths.resize(instance.numAgents);
     root->id = numNodesGenerated++;
 
+    Eigen::Vector3f a;
+    a << instance.goalLocs[1].x, instance.goalLocs[1].y, instance.goalLocs[1].z;
+
+    Eigen::Vector3f b;
+    b << instance.goalLocs[0].x, instance.goalLocs[0].y, instance.goalLocs[0].z;
+
+    root->constraintList = {{0, 0, a}, {1, 0, b}};
+
     // Create paths for all agents
     for (int i = 0; i < instance.startLocs.size(); i++)
     {
         params.start = instance.startLocs[i];
         params.goal = instance.goalLocs[i];
-        bool found = lowLevelSolver.solveQuadcopter(params, root->constraintList, QuadTrajectory(), root->paths[i]);
+        bool found = lowLevelSolver.solveQuadcopter(params, root->constraintList, QuadTrajectory(), root->paths[i], i);
 
         if (!found)
             throw NoSolutionException();
@@ -73,7 +83,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
             params.start = instance.startLocs[c.agentNum];
             params.goal = instance.goalLocs[c.agentNum];
 
-            bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, prev, child->paths[c.agentNum]);
+            bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, prev, child->paths[c.agentNum], c.agentNum);
 
             // std::cout << "After:\n";
             // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
