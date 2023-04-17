@@ -38,16 +38,14 @@ class TrajectoryOptimizer
 {
 public:
     TrajectoryOptimizer()
-        : opti(Opti()), verbose(true)
+        : verbose(true)
     {
         iLQROpt = {250, 1e-3, 20};
 
-        Dict options;
         options["ipopt.print_level"] = 0;
         options["print_time"] = false;
         options["verbose"] = false;
         options["ipopt.sb"] = "yes"; // Undocumented option that suppresses the IPOPT header from printing
-        opti.solver("ipopt", options);
     }
 
     bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution, int agentNum);
@@ -98,8 +96,7 @@ private:
     Quadcopter quadcopter;
 
     iLQROptions iLQROpt;
-
-    Opti opti;
+    Dict options;
 
     bool verbose;
 };

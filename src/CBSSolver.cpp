@@ -23,14 +23,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     root->paths.resize(instance.numAgents);
     root->id = numNodesGenerated++;
 
-    // Eigen::Vector3f a;
-    // a << instance.goalLocs[1].x, instance.goalLocs[1].y, instance.goalLocs[1].z;
-
-    // Eigen::Vector3f b;
-    // b << instance.goalLocs[0].x, instance.goalLocs[0].y, instance.goalLocs[0].z;
-
-    // root->constraintList = {{0, 0, a}, {1, 0, b}};
-
     for (int i = 0; i < instance.numAgents; i++)
     {
         for (int j = 0; j < instance.numAgents; j++)
@@ -67,6 +59,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
         // If no collisions in the node then return solution
         if (cur->collisionList.size() == 0)
         {
+            std::cout << "Num Cons = " << cur->constraintList.size() << std::endl;
             return cur->paths;
         }
 

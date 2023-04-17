@@ -7,6 +7,9 @@
 
 bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution, int agentNum)
 {
+    Opti opti;
+    opti.solver("ipopt", options);
+
     int N = params.N;
     float dt = params.dt;
 
@@ -27,9 +30,6 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
 
     MX x = opti.variable(DoubleIntegrator::nx, N);
     MX u = opti.variable(DoubleIntegrator::nu, N - 1);
-
-    printf("DI Start = (%f, %f, %f)\n", params.start.x, params.start.y, params.start.z);
-    printf("DI Goal = (%f, %f, %f)\n", params.goal.x, params.goal.y, params.goal.z);
 
     opti.minimize(doubleIntegrator.computeCost(Q, Qf, R, x, u, goal, N, dt));
 
@@ -58,8 +58,8 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
                 DM location = {c.location[0], c.location[1], c.location[2]};
                 opti.subject_to(params.colDistSq * 1.5 <= sumsqr(x(Slice(0, 3), t) - location));
 
-                if (t == minTime)
-                    std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
+                // if (t == minTime)
+                //     std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
             }
         }
 
