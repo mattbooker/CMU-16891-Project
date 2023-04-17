@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "utils.hpp"
+#include "ShapeDecomposerSphere.hpp"
 #include "ShapeDecomposer.hpp"
 #include "TrajectoryOptimizer.hpp"
 #include "CBSSolver.hpp"
@@ -8,17 +9,34 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    const int numAgents = 2;
+    const int numAgents = 4;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
+    const float sphereRadius = 5.0;
 
     // Presteps: Get as input a shape
 
     // 1. Get endpoints for N number of agents from shape decomposer
     ShapeDecomposer decomposer(numAgents, envBbox);
-    // std::vector<Point3> endpoints = decomposer.decomposeShape();
+    std::vector<Point3> endpoints = decomposer.decomposeShape();
 
-    std::vector<Point3> starts = {{0, 0, 1}, {0, 0, 2}};
-    std::vector<Point3> endpoints = {{0, 2, -1}, {0, 2, -2}};
+    //Spherical shape decomposer
+    // ShapeDecomposerSphere decomposer(numAgents, envBbox, sphereRadius);
+    // std::vector<Point3> endpoints = decomposer.decomposeShapeSphere();
+
+    std::vector<Point3> starts = {{0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}};
+    // std::vector<Point3> starts = {{0, 0, -3}, {0, 0, -2}, {0, 0, -1}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}, {0, 0, 5}};
+    // std::vector<Point3> endpoints = {{0, 2, -1}, {0, 2, -2}};
+
+    
+    // std::vector<Point3> starts;
+
+    // for (int i = -2; i < 2; i++)
+    // {
+    //     for (int j = -2; j < 2; j++)
+    //     {
+    //         starts.push_back({i, j, 1});
+    //     }
+    // }
 
     // 2. Determine assignment using Anonymous MAPF (min cut max flow)
 
