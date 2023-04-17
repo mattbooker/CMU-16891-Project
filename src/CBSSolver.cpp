@@ -25,13 +25,25 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     root->paths.resize(instance.numAgents);
     root->id = numNodesGenerated++;
 
-    Eigen::Vector3f a;
-    a << instance.goalLocs[1].x, instance.goalLocs[1].y, instance.goalLocs[1].z;
+    // Eigen::Vector3f a;
+    // a << instance.goalLocs[1].x, instance.goalLocs[1].y, instance.goalLocs[1].z;
 
-    Eigen::Vector3f b;
-    b << instance.goalLocs[0].x, instance.goalLocs[0].y, instance.goalLocs[0].z;
+    // Eigen::Vector3f b;
+    // b << instance.goalLocs[0].x, instance.goalLocs[0].y, instance.goalLocs[0].z;
 
-    root->constraintList = {{0, 0, a}, {1, 0, b}};
+    // root->constraintList = {{0, 0, a}, {1, 0, b}};
+
+    for (int i = 0; i < instance.numAgents; i++)
+    {
+        for (int j = 0; j < instance.numAgents; j++)
+        {
+            if (j == i) continue;
+
+            Eigen::Vector3f con;
+            con << instance.goalLocs[j].x, instance.goalLocs[j].y, instance.goalLocs[j].z;
+            root->constraintList.push_back({i, params.N, con}); 
+        }
+    }
 
     // Create paths for all agents
     for (int i = 0; i < instance.startLocs.size(); i++)
@@ -51,7 +63,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 
     while (!pq.empty())
     {
-        printf("Solving new node\n");
         CTNodeSharedPtr cur = pq.top();
         pq.pop();
 
@@ -72,30 +83,12 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 
             // Replan only for the agent that has the new constraint
 
-            // std::cout << "Before:\n";
-            // for(int i = 0; i < child->paths[c.agentNum].size(); i++)
-            // {
-            //     std::cout << child->paths[c.agentNum][i](0) << ", " << child->paths[c.agentNum][i](1) << ", " << child->paths[c.agentNum][i](2) << std::endl;
-            // }
-
             QuadTrajectory prev = child->paths[c.agentNum];
             child->paths[c.agentNum].clear();
             params.start = instance.startLocs[c.agentNum];
             params.goal = instance.goalLocs[c.agentNum];
 
             bool success = lowLevelSolver.solveQuadcopter(params, child->constraintList, prev, child->paths[c.agentNum], c.agentNum);
-
-            std::cout << "After:\n";
-            for(int i = 0; i < child->paths[c.agentNum].size(); i++)
-            {
-                std::cout << child->paths[c.agentNum][i](0) << ", " << child->paths[c.agentNum][i](1) << ", " << child->paths[c.agentNum][i](2) << std::endl;
-            }
-            printf("-----------\n");
-            
-            for(int i = 0; i < child->paths[1 - c.agentNum].size(); i++)
-            {
-                std::cout << child->paths[1 - c.agentNum][i](0) << ", " << child->paths[1 - c.agentNum][i](1) << ", " << child->paths[1 - c.agentNum][i](2) << std::endl;
-            }
 
             if (success)
             {
