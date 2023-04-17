@@ -108,7 +108,7 @@ float inline CBSSolver::computeCost(const std::vector<QuadTrajectory> &paths)
     {
         for (int j = 1; j < paths[i].size(); j++)
         {
-            result += (paths[i][j](Eigen::seq(0,2)) - paths[i][j - 1](Eigen::seq(0,2))).norm();
+            result += (paths[i][j](Eigen::seq(0,2)) - paths[i][j - 1](Eigen::seq(0,2))).squaredNorm();
         }
     }
 
@@ -155,9 +155,9 @@ void CBSSolver::getCollisionsAgents(QuadTrajectory agent1, QuadTrajectory agent2
         Eigen::Vector3f points1 = a1_pos1 + ans.first * line1;
         Eigen::Vector3f points2 = a2_pos1 + ans.second * line2;
 
-        float shortest_dist = powf(powf(points2[0] - points1[0], 2) + powf(points2[1] - points1[1], 2) + powf(points2[2] - points1[2], 2), 0.5);
+        float shortestDistSq = powf(points2[0] - points1[0], 2) + powf(points2[1] - points1[1], 2) + powf(points2[2] - points1[2], 2);
 
-        if (shortest_dist <= powf(colDistSq, 0.5))
+        if (shortestDistSq <= colDistSq)
         {
             collisionList.push_back({a1, a2, i, std::make_pair(points1, points2)});
         }
