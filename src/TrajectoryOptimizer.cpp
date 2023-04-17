@@ -49,26 +49,31 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
     // Add sphere collision avoidance constraint
     for (const Constraint &c : constraints)
     {
-        // TODO: Constraint shouldnt be for entire trajectory
-        // int min_time = std::max(0, c.t - 10);
-        // int max_time = std::min(params.N, c.t + 10);
-        // for (int t = min_time; t <= max_time; t++)
-        // {
-        //     DM location = {c.location[0], c.location[1], c.location[2]};
-        //     opti.subject_to(params.colRadiusSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
-        // }
-
-        for (int t = 0; t < N; t++)
+        int minTime = std::max(0, c.t - 10);
+        int maxTime = std::min(params.N - 1, c.t + 10);
+        for (int t = minTime; t <= maxTime; t++)
         {
             if (c.agentNum == agentNum)
             {
                 DM location = {c.location[0], c.location[1], c.location[2]};
-                opti.subject_to(params.colDistSq * 1.2 <= sumsqr(x(Slice(0, 3), t) - location));
+                opti.subject_to(params.colDistSq * 1.5 <= sumsqr(x(Slice(0, 3), t) - location));
 
-                if (t == 0)
+                if (t == minTime)
                     std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
             }
         }
+
+        // for (int t = 0; t < N; t++)
+        // {
+        //     if (c.agentNum == agentNum)
+        //     {
+        //         DM location = {c.location[0], c.location[1], c.location[2]};
+        //         opti.subject_to(params.colDistSq * 1.4 <= sumsqr(x(Slice(0, 3), t) - location));
+
+        //         if (t == 0)
+        //             std::cout << "Cons = " << c.location.transpose() << " @ " << c.t << std::endl;
+        //     }
+        // }
 
     }
 

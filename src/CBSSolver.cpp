@@ -5,12 +5,10 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 {
     printf("Starting CBS Solver\n");
 
-    float baseTf = 5.0;
-
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
-    params.tf = baseTf;
+    params.tf = 5.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
     params.colDistSq = colDistSq;
