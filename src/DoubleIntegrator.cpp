@@ -17,6 +17,16 @@ MX DoubleIntegrator::rk4(const MX &x, const MX &u, float dt)
     return x + (1.0 / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
+
+MX DoubleIntegrator::hermiteSimpson(const MX &x1, const MX &x2, const MX &u, float dt)
+{
+    MX x1Dot = dynamics(x1, u);
+    MX x2Dot = dynamics(x2, u);
+
+    MX xkHalf = (x1 + x2) / 2 + dt * (x1Dot - x2Dot) / 8;
+    return x1 + dt * (x1Dot + 4 * dynamics(xkHalf, u) + x2Dot) / 6 - x2;
+}
+
 MX DoubleIntegrator::computeCost(const DM &Q, const DM &Qf, const DM &R, const MX &x, const MX &u, const DM &xGoal, int N, float dt)
 {
     // Terminal cost

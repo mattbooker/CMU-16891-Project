@@ -46,6 +46,7 @@ public:
         options["print_time"] = false;
         options["verbose"] = false;
         options["ipopt.sb"] = "yes"; // Undocumented option that suppresses the IPOPT header from printing
+        options["expand"] = 1;
     }
 
     bool solveDoubleIntegrator(const Params &params, const std::vector<Constraint> &constraints, const QuadTrajectory &prev, DM &xSolution, DM &uSolution, int agentNum);

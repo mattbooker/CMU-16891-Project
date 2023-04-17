@@ -43,7 +43,12 @@ bool TrajectoryOptimizer::solveDoubleIntegrator(const Params &params, const std:
     // Add dynamics constraint
     for (int i = 0; i < N - 1; i++)
     {
-        opti.subject_to(x(Slice(), i + 1) - doubleIntegrator.rk4(x(Slice(), i), u(Slice(), i), dt) == 0);
+        // RK4 Shooting method
+        // opti.subject_to(x(Slice(), i + 1) - doubleIntegrator.rk4(x(Slice(), i), u(Slice(), i), dt) == 0);
+
+        // Hermite Simpson Collocation Method
+        opti.subject_to(doubleIntegrator.hermiteSimpson(x(Slice(), i), x(Slice(), i + 1), u(Slice(), i), dt) == 0);
+
     }
 
     // Add sphere collision avoidance constraint
@@ -206,9 +211,6 @@ bool TrajectoryOptimizer::runILQR(const Params &params, QuadTrajectory &x, QuadC
     u = uRef;
     std::vector<QuadControlsVector> d(N - 1, QuadControlsVector::Zero());
     std::vector<nuByNxMatrix> K(N - 1, nuByNxMatrix::Zero());
-
-    std::cout << "Start = " << xRef[0](Eigen::seq(0, 2)).transpose() << std::endl;
-    std::cout << "Goal = " << xRef[N - 1](Eigen::seq(0, 2)).transpose() << std::endl;
 
     for (int i = 0; i < iLQROpt.maxIters; i++)
     {

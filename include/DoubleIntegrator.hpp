@@ -13,6 +13,7 @@ public:
 
     MX dynamics(const MX &x, const MX &u);
     MX rk4(const MX &x, const MX &u, float dt);
+    MX hermiteSimpson(const MX &x1, const MX &x2, const MX &u, float dt);
 
     MX computeCost(const DM &Q, const DM &Qf, const DM &R, const MX &x, const MX &u, const DM &xGoal, int N, float dt);
 };
