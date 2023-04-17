@@ -13,7 +13,7 @@ class CBSSolver
 public:
     CBSSolver()
         : numNodesGenerated(0), 
-        colDistSq(0.25)
+        colDistSq(0.5776)
     {
     }
 
