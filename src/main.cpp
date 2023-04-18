@@ -6,10 +6,12 @@
 
 using namespace casadi;
 
+Timer* Timer::timer_ = nullptr;
+
 int main(int argv, char *argc[])
 {
-    const int numAgents = 16;
-    const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
+    const int numAgents = 100;
+    const BoundingBox envBbox = {{-15, -15, -15}, {15, 15, 15}};
 
     // Presteps: Get as input a shape
 
@@ -19,9 +21,9 @@ int main(int argv, char *argc[])
 
     std::vector<Point3> starts;
 
-    for (int i = -2; i < 2; i++)
+    for (int i = -5; i < 5; i++)
     {
-        for (int j = -2; j < 2; j++)
+        for (int j = -5; j < 5; j++)
         {
             starts.push_back({2*i, 2*j, 0});
         }
@@ -33,21 +35,21 @@ int main(int argv, char *argc[])
 
     CBSSolver solver;
 
-    MAPFInstance problem = {numAgents, envBbox, starts, endpoints};
+    MAPFInstance problem = {numAgents, envBbox, endpoints, starts};
 
-    auto startTime = std::chrono::high_resolution_clock::now();
-
+    Timer* test = Timer::getInstance();
+    test->start("Full");
     std::vector<QuadTrajectory> answer = solver.solve(problem);
+    test->stop("Full");
+    test->printAllTimers();
 
-    auto stopTime = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stopTime - startTime);
-    std::cout << "Time = " << duration.count() * 1e-6 << std::endl;
+    Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "", "");
 
     for (int i = 0; i < answer.size(); i++)
     {
         for (int j = 0; j < answer[i].size(); j++)
         {
-            printf("%f, %f, %f\n", answer[i][j](0), answer[i][j](1), answer[i][j](2));
+          std::cout << answer[i][j].format(CommaInitFmt) << std::endl;
         }
 
         printf("---\n");

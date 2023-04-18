@@ -145,8 +145,12 @@ bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vecto
 {
     // Solve for a reference trajectory (using double integrator)
     DM xDoubleIntegrator, uDoubleIntegrator;
+    Timer* test = Timer::getInstance();
 
+
+    test->start("Double Integrator");
     bool result = solveDoubleIntegrator(params, constraints, prev, xDoubleIntegrator, uDoubleIntegrator, agentNum);
+    test->stop("Double Integrator");
 
     if (!result)
         return false;
@@ -154,12 +158,16 @@ bool TrajectoryOptimizer::solveQuadcopter(const Params &params, const std::vecto
     QuadTrajectory xRef(params.N, QuadStateVector::Zero());
     QuadControls uRef(params.N, QuadControlsVector::Ones());
 
+    test->start("iLQR");
     createReference(params, xDoubleIntegrator, xRef, uRef);
 
     QuadControls uOut;
 
     // Use iLQR to refine trajectory to be flyable by quadrotor
-    return runILQR(params, xOut, uOut, xRef, uRef);
+    bool success = runILQR(params, xOut, uOut, xRef, uRef);
+    test->stop("iLQR");
+
+    return success;
 }
 
 void TrajectoryOptimizer::createReference(const Params &params, const DM &xDoubleIntegrator, QuadTrajectory &xRef, QuadControls &uRef)

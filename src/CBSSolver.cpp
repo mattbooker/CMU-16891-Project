@@ -8,7 +8,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
-    params.tf = 5.0;
+    params.tf = 8.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
     params.colDistSq = colDistSq;
@@ -120,6 +120,9 @@ void CBSSolver::detectCollisions(const std::vector<QuadTrajectory> &paths, std::
     Collision col;
     collisionList.clear();
 
+    Timer* test = Timer::getInstance();
+    test->start("Detect Collisions");
+
     for (int i = 0; i < paths.size() - 1; i++)
     {
         for (int j = i + 1; j < paths.size(); j++)
@@ -127,6 +130,7 @@ void CBSSolver::detectCollisions(const std::vector<QuadTrajectory> &paths, std::
             getCollisionsAgents(paths[i], paths[j], i, j, collisionList);
         }
     }
+    test->stop("Detect Collisions");
 }
 
 inline std::vector<Constraint> CBSSolver::resolveCollision(const Collision &col)
