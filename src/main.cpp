@@ -9,34 +9,41 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    const int numAgents = 4;
+    const int numAgents = 144;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
 
     // Presteps: Get as input a shape
 
     // 1. Get endpoints for N number of agents from shape decomposer
-    ShapeDecomposer decomposer(numAgents, envBbox);
-    std::vector<Point3> endpoints = decomposer.decomposeShape();
+    // ShapeDecomposer decomposer(numAgents, envBbox);
+    // std::vector<Point3> endpoints = decomposer.decomposeShape();
 
     //Spherical shape decomposer
-    // ShapeDecomposerSphere decomposer(numAgents, envBbox, sphereRadius);
-    // std::vector<Point3> endpoints = decomposer.decomposeShapeSphere();
+    ShapeDecomposerSphere decomposer(numAgents, envBbox, sphereRadius);
+    std::vector<Point3> endpoints = decomposer.decomposeShapeSphere();
 
-    std::vector<Point3> starts = {{0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}};
+    // std::vector<Point3> starts = {{0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}};
     // std::vector<Point3> starts = {{0, 0, -3}, {0, 0, -2}, {0, 0, -1}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}, {0, 0, 5}};
     // std::vector<Point3> endpoints = {{0, 2, -1}, {0, 2, -2}};
 
     
-    // std::vector<Point3> starts;
+    std::vector<Point3> starts;
 
-    // for (int i = -2; i < 2; i++)
-    // {
-    //     for (int j = -2; j < 2; j++)
-    //     {
-    //         starts.push_back({i, j, 1});
-    //     }
-    // }
+    for (int i = -6; i < 6; i++)
+    {
+        for (int j = -6; j < 6; j++)
+        {
+            starts.push_back({2*i, 2*j, -6});
+        }
+    }
+    printf("Num of starts: %d \n", starts.size());
+    printf("Num of ends: %d\n", endpoints.size());
+
+    for (int i = 0; i<endpoints.size(); i++)
+    {
+        printf("%f, %f, %f \n", endpoints[i].x, endpoints[i].y, endpoints[i].z);
+    }
 
     // 2. Determine assignment using Anonymous MAPF (min cut max flow)
 

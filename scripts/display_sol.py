@@ -20,12 +20,14 @@ for line in data:
 
 trajs = np.array(trajs)
 
-fig = plt.figure()
+# fig = plt.figure()
+fig = plt.figure(figsize=plt.figaspect(1))
 ax = fig.add_subplot(projection='3d')
 
 for i in range(numAgents):
-    ax.plot(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
-    ax.scatter(trajs[i, -1, 0], trajs[i, -1, 1], trajs[i, -1, 2])
+    # ax.plot(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
+    ax.scatter(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
+    # ax.scatter(trajs[i, -1, 0], trajs[i, -1, 1], trajs[i, -1, 2])
 
 max_x = np.max(trajs[:, :, 0])
 min_x = np.min(trajs[:, :, 0])
@@ -49,5 +51,5 @@ def animate(frame):
 anim = animation.FuncAnimation(fig, animate,
                                frames=180, interval=20)
 # Save
-# anim.save('rotate_view.gif', fps=30)
-plt.show()
+anim.save('rotate_view.gif', fps=30)
+# plt.show()

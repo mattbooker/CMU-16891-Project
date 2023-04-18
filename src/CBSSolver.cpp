@@ -8,7 +8,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
-    params.tf = 5.0;
+    params.tf = 10.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
     params.colDistSq = colDistSq;
@@ -23,17 +23,17 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     root->paths.resize(instance.numAgents);
     root->id = numNodesGenerated++;
 
-    // for (int i = 0; i < instance.numAgents; i++)
-    // {
-    //     for (int j = 0; j < instance.numAgents; j++)
-    //     {
-    //         if (j == i) continue;
+    for (int i = 0; i < instance.numAgents; i++)
+    {
+        for (int j = 0; j < instance.numAgents; j++)
+        {
+            if (j == i) continue;
 
-    //         Eigen::Vector3f con;
-    //         con << instance.goalLocs[j].x, instance.goalLocs[j].y, instance.goalLocs[j].z;
-    //         root->constraintList.push_back({i, params.N, con}); 
-    //     }
-    // }
+            Eigen::Vector3f con;
+            con << instance.goalLocs[j].x, instance.goalLocs[j].y, instance.goalLocs[j].z;
+            root->constraintList.push_back({i, params.N, con}); 
+        }
+    }
 
     // Create paths for all agents
     for (int i = 0; i < instance.startLocs.size(); i++)

@@ -14,6 +14,8 @@ public:
 
     // TODO: remove and replace with actual decomposition
     std::vector<Point3> decomposeShapeSphere();
+    void decomposeShape(float radius, float x, int N);
+    std::vector<Point3> result;
 
 private:
     int num_of_agents_;
