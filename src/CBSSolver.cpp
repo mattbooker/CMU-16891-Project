@@ -8,7 +8,7 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
-    params.tf = 10.0;
+    params.tf = 8.0;
     params.dt = 0.1;
     params.N = int(params.tf / params.dt);
     params.colDistSq = colDistSq;

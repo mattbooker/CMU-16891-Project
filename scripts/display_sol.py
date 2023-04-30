@@ -25,8 +25,8 @@ fig = plt.figure(figsize=plt.figaspect(1))
 ax = fig.add_subplot(projection='3d')
 
 for i in range(numAgents):
-    # ax.plot(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
-    ax.scatter(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
+    ax.plot(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
+    # ax.scatter(trajs[i, :, 0], trajs[i, :, 1], trajs[i, :, 2])
     # ax.scatter(trajs[i, -1, 0], trajs[i, -1, 1], trajs[i, -1, 2])
 
 max_x = np.max(trajs[:, :, 0])

@@ -80,11 +80,18 @@ std::vector<Point3> ShapeDecomposerSphere::decomposeShapeSphere()
         printf("Num of agents left: %d\n", N);
         if (N == num_of_agents_)
         {
-            decomposeShape(radius, x, numOfAgentsInCircle);
-            N -= numOfAgentsInCircle;
-            x += deltaX;
-            radius = sqrt(powf(sphereRadius_, 2) - powf(x, 2));
-            printf("Radius: %f\n", radius);
+            if (N < numOfAgentsInCircle)
+            {
+                decomposeShape(radius, x, N);
+                N = 0;
+            }
+            else{
+                decomposeShape(radius, x, numOfAgentsInCircle);
+                N -= numOfAgentsInCircle;
+                x += deltaX;
+                radius = sqrt(powf(sphereRadius_, 2) - powf(x, 2));
+                printf("Radius: %f\n", radius);
+            }
         }
         else if (N < num_of_agents_)
         {
