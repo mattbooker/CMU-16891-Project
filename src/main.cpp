@@ -6,14 +6,11 @@
 #include "ShapeDecomposer.hpp"
 #include "TrajectoryOptimizer.hpp"
 #include "CBSSolver.hpp"
-#include "goalAllocator.hpp"
-#include <random>
 
 using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    // srand(time(0));
     const int numAgents = 16;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
@@ -21,8 +18,6 @@ int main(int argv, char *argc[])
     //Spherical shape decomposer
     ShapeDecomposerSphere decomposer(numAgents, envBbox, sphereRadius);
     std::vector<Point3> endpoints = decomposer.decomposeShapeSphere();
-
-    
     std::vector<Point3> starts;
 
     for (int i = -2; i < 2; i++)
