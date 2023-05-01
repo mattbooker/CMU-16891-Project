@@ -13,10 +13,10 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    srand(40);
+    srand(17);
     auto beg = std::chrono::high_resolution_clock::now();
 
-    const int numAgents = 50;
+    const int numAgents = 40;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
 
