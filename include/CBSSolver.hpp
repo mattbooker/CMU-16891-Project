@@ -7,6 +7,7 @@
 #include "TrajectoryOptimizer.hpp"
 #include "Quadcopter.hpp"
 #include <utility>
+#include <chrono>
 
 class CBSSolver
 {

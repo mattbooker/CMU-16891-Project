@@ -13,10 +13,10 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    // srand(time(0));
+    srand(10);
     auto beg = std::chrono::high_resolution_clock::now();
 
-    const int numAgents = 196;
+    const int numAgents = 5;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
 
@@ -27,55 +27,95 @@ int main(int argv, char *argc[])
     // std::vector<Point3> endpoints = decomposer.decomposeShape();
 
     //Spherical shape decomposer
-    ShapeDecomposerSphere decomposer(numAgents, envBbox, sphereRadius);
-    std::vector<Point3> endpoints = decomposer.decomposeShapeSphere();
+    // ShapeDecomposerSphere decomposer(numAgents, envBbox, sphereRadius);
+    // std::vector<Point3> endpoints = decomposer.decomposeShapeSphere();
 
     // std::vector<Point3> starts = {{0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}};
     // std::vector<Point3> starts = {{0, 0, -3}, {0, 0, -2}, {0, 0, -1}, {0, 0, 0}, {0, 0, 1}, {0, 0, 2}, {0, 0, 3}, {0, 0, 4}, {0, 0, 5}};
     // std::vector<Point3> endpoints = {{0, 2, -1}, {0, 2, -2}};
 
     
-    std::vector<Point3> starts;
+    // std::vector<Point3> starts;
 
-    for (int i = -7; i < 7; i++)
-    {
-        for (int j = -7; j < 7; j++)
-        {
-            starts.push_back({2*i, 2*j, -2});
-        }
-    }
-    printf("Num of starts: %d \n", starts.size());
-    printf("Num of ends: %d\n", endpoints.size());
+    // for (int i = -7; i < 7; i++)
+    // {
+    //     for (int j = -7; j < 7; j++)
+    //     {
+    //         starts.push_back({2*i, 2*j, -2});
+    //     }
+    // }
+    // printf("Num of starts: %d \n", starts.size());
+    // printf("Num of ends: %d\n", endpoints.size());
 
     //random starts
-    // int max_x = envBbox.max.x;
-    // int max_y = envBbox.max.y;
-    // int max_z = envBbox.max.z;
-    // int min_x = envBbox.min.x;
-    // int min_y = envBbox.min.y;
-    // int min_z = envBbox.min.z;
-    // for (int i = 0; i < numAgents; i++)
-    // {
-    //     int rand_x = rand()%(max_x-min_x + 1) + min_x;
-    //     int rand_y = rand()%(max_y-min_y + 1) + min_y;
-    //     int rand_z = rand()%(max_z-min_z + 1) + min_z;
-    //     starts.push_back({rand_x, rand_y, rand_z});
-    // }
+    const float colRadiusSq = 0.5776;
+    std::vector<Point3> endpoints;    
+    std::vector<Point3> starts;
 
-    // std::vector<Point3> endpoints;
+    int max_x = envBbox.max.x;
+    int max_y = envBbox.max.y;
+    int max_z = envBbox.max.z;
+    int min_x = envBbox.min.x;
+    int min_y = envBbox.min.y;
+    int min_z = envBbox.min.z;
 
-    // for (int i = 0; i < numAgents; i++)
-    // {
-    //     int rand_x = rand()%(max_x-min_x + 1) + min_x;
-    //     int rand_y = rand()%(max_y-min_y + 1) + min_y;
-    //     int rand_z = rand()%(max_z-min_z + 1) + min_z;
-    //     endpoints.push_back({rand_x, rand_y, rand_z});
-    // }
+    while (starts.size() < numAgents)
+    {
+        float rand_x = (float)(rand()) / (float)(RAND_MAX)*(max_x-min_x + 1) + min_x;
+        float rand_y = (float)(rand()) / (float)(RAND_MAX)*(max_y-min_y + 1) + min_y;
+        float rand_z = (float)(rand()) / (float)(RAND_MAX)*(max_z-min_z + 1) + min_z;
+
+        bool is_valid = true;
+
+        for (const auto& p : starts)
+        {
+            float dist = powf(rand_x - p.x, 2) + powf(rand_y - p.y, 2) + powf(rand_z - p.z, 2);
+
+            if (dist < colRadiusSq)
+            {
+                is_valid = false;
+                break;
+            }
+        }
+
+        if (is_valid)
+        {
+            starts.push_back({rand_x, rand_y, rand_z});
+            printf("%f, %f, %f\n", rand_x, rand_y, rand_z);
+        }
+    }
+    printf("---\n");
+
+    while (endpoints.size() < numAgents)
+    {
+        float rand_x = (float)(rand()) / (float)(RAND_MAX)*(max_x-min_x + 1) + min_x;
+        float rand_y = (float)(rand()) / (float)(RAND_MAX)*(max_y-min_y + 1) + min_y;
+        float rand_z = (float)(rand()) / (float)(RAND_MAX)*(max_z-min_z + 1) + min_z;
+
+        bool is_valid = true;
+
+        for (const auto& p : endpoints)
+        {
+            float dist = powf(rand_x - p.x, 2) + powf(rand_y - p.y, 2) + powf(rand_z - p.z, 2);
+
+            if (dist < colRadiusSq)
+            {
+                is_valid = false;
+                break;
+            }
+        }
+
+        if (is_valid)
+        {
+            printf("%f, %f, %f\n", rand_x, rand_y, rand_z);
+            endpoints.push_back({rand_x, rand_y, rand_z});
+        }
+    }
 
 
-    std::vector<std::vector<int>> costMatrix;
+    std::vector<std::vector<float>> costMatrix;
     for (int i = 0; i < numAgents; i++){
-        costMatrix.push_back(std::vector<int>());
+        costMatrix.push_back(std::vector<float>());
         for (int j = 0; j < endpoints.size(); j++){
             costMatrix[i].push_back(int(powf(powf(endpoints[j].x - starts[i].x, 2) 
                                     + powf(endpoints[j].y - starts[i].y, 2) 
@@ -101,7 +141,7 @@ int main(int argv, char *argc[])
     // }
 
     std::vector<std::vector<int>> assignment;
-    std::ifstream file_in("../assignments/196_agents_assignment.txt");
+    std::ifstream file_in("../assignments/random_experiments/4_agents_exp1.txt");
     if (!file_in) {/*error*/}
 
     std::string line;
@@ -219,18 +259,19 @@ int main(int argv, char *argc[])
  
     // Displaying the elapsed time
     std::cout << "Elapsed Time: " << duration.count();
+    std::cout << "\n";
 
-    Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "", "");
+    // Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "", "");
 
-    for (int i = 0; i < answer.size(); i++)
-    {
-        for (int j = 0; j < answer[i].size(); j++)
-        {
-          std::cout << answer[i][j].format(CommaInitFmt) << std::endl;
-        }
+    // for (int i = 0; i < answer.size(); i++)
+    // {
+    //     for (int j = 0; j < answer[i].size(); j++)
+    //     {
+    //       std::cout << answer[i][j].format(CommaInitFmt) << std::endl;
+    //     }
 
-        printf("---\n");
-    }
+    //     printf("---\n");
+    // }
 
     return 0;
 }

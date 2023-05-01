@@ -38,7 +38,7 @@ class TrajectoryOptimizer
 {
 public:
     TrajectoryOptimizer()
-        : verbose(true)
+        : verbose(false)
     {
         iLQROpt = {250, 1e-3, 20};
 
