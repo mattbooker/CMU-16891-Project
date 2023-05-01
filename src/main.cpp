@@ -13,10 +13,10 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    srand(10);
+    srand(1);
     auto beg = std::chrono::high_resolution_clock::now();
 
-    const int numAgents = 5;
+    const int numAgents = 10;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
 
@@ -141,7 +141,7 @@ int main(int argv, char *argc[])
     // }
 
     std::vector<std::vector<int>> assignment;
-    std::ifstream file_in("../assignments/random_experiments/4_agents_exp1.txt");
+    std::ifstream file_in("../assignments/random_experiments/10_agents/10_agents_exp1.txt");
     if (!file_in) {/*error*/}
 
     std::string line;
@@ -254,12 +254,25 @@ int main(int argv, char *argc[])
     //     printf("---\n");
     // }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
  
     // Displaying the elapsed time
-    std::cout << "Elapsed Time: " << duration.count();
-    std::cout << "\n";
+    float cost = 0;
+    for (const auto& traj : answer)
+    {
+      for (int i = 0; i < traj.size() - 1; i++)
+      {
+        cost += (traj[i] - traj[i + 1]).norm();
+      }
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - beg);
+
+    // Displaying the elapsed time
+    std::cout << "Elapsed Time: " << duration.count() << std::endl;
+    std::cout << "Sum of Cost: " << cost << std::endl;
 
     // Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "", "");
 
