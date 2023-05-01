@@ -5,10 +5,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 {
     printf("Starting CBS Solver\n");
 
-    // Keep track of time
-    std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> elapsedTime;
-
     // Initialize low level solver
     TrajectoryOptimizer lowLevelSolver;
     Params params;
@@ -57,14 +53,6 @@ std::vector<QuadTrajectory> CBSSolver::solve(const MAPFInstance &instance)
 
     while (!pq.empty())
     {
-        // Check if abort due to timeout
-        if(runtimeLimitMs > 0)
-        {
-            elapsedTime = std::chrono::high_resolution_clock::now() - startTime;
-            if(elapsedTime.count() > runtimeLimitMs)
-                throw TimeoutException();
-        }
-
         CTNodeSharedPtr cur = pq.top();
         pq.pop();
 
