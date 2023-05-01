@@ -13,7 +13,7 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    srand(10);
+    srand(40);
     auto beg = std::chrono::high_resolution_clock::now();
 
     const int numAgents = 50;
@@ -141,7 +141,7 @@ int main(int argv, char *argc[])
     // }
 
     std::vector<std::vector<int>> assignment;
-    std::ifstream file_in("../assignments/random_experiments/50_agents/50_agents_exp10.txt");
+    std::ifstream file_in("../assignments/random_experiments/50_agents/50_agents_exp40.txt");
     if (!file_in) {/*error*/}
 
     std::string line;
