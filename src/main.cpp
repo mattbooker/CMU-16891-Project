@@ -13,10 +13,10 @@ using namespace casadi;
 
 int main(int argv, char *argc[])
 {
-    srand(17);
+    srand(19);
     auto beg = std::chrono::high_resolution_clock::now();
 
-    const int numAgents = 40;
+    const int numAgents = 30;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
 
@@ -141,7 +141,7 @@ int main(int argv, char *argc[])
     // }
 
     std::vector<std::vector<int>> assignment;
-    std::ifstream file_in("../assignments/random_experiments/50_agents/50_agents_exp40.txt");
+    std::ifstream file_in("../assignments/random_experiments/30_agents/30_agents_exp19.txt");
     if (!file_in) {/*error*/}
 
     std::string line;
