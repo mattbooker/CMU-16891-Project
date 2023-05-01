@@ -1,10 +1,7 @@
 #include "goalAllocator.hpp"
 
-void goalAllocator::solve()
-{
-    int numOfRows;
-    int numOfCols;
-    
+std::vector<std::vector<int>> goalAllocator::solve()
+{    
     int path_row_0, path_col_0; //temporary to hold the smallest uncovered value
     
     // Array for the augmenting path algorithm
@@ -14,6 +11,7 @@ void goalAllocator::solve()
     bool done = false;
     int step = 1;
     while (!done) {
+        // printf("Entered while loop\n");
         switch (step) {
             case 1:
                 rowMinimization(step);
@@ -34,19 +32,20 @@ void goalAllocator::solve()
             case 6:
                 step6(step);
                 break;
-            case 7:
-                for (auto& vec: M) {vec.resize(original.begin()->size());}
-                M.resize(original.size());
-                done = true;
-                break;
+            // case 7:
+            //     for (auto& vec: M) {vec.resize(original.begin()->size());}
+            //     M.resize(original.size());
+            //     done = true;
+            //     break;
             default:
                 done = true;
                 break;
         }
     }
+    return maskMatrix_;
 }
 
-void goalAllocator::rowMinimization()
+void goalAllocator::rowMinimization(int& step)
 {
     for (auto &row: costMatrix_)
     {
@@ -60,24 +59,34 @@ void goalAllocator::rowMinimization()
             }
         }
     }
+    printf("Row min done\n");
 }
 
-void goalAllocator::columnMinimization()
+void goalAllocator::columnMinimization(int& step)
 {
-    for (int i = 0; i < numOfRows; i++)
+    printf("Entered column min\n");
+
+    for (int i = 0; i < numOfRows_; i++)
     {
         int minm = costMatrix_[0][i];
-        for (int j = 0; j < numOfCols; j++)
+        printf("minm : %d\n", minm);
+
+        for (int j = 0; j < numOfCols_; j++)
         {
             if (costMatrix_[j][i] < minm)
                 minm = costMatrix_[j][i];
+            printf("New minm : %d\n", minm);
+
         }
 
-        for (int j = 0; j < numOfCols; j++)
+        for (int j = 0; j < numOfCols_; j++)
         {
+            printf("Subtrcting min\n");
             costMatrix_[j][i] -= minm;
         }
     }
+    printf("Step 1 done\n");
+    step = 2;
 
 }
 
@@ -86,11 +95,11 @@ inline void goalAllocator::clear_covers(std::vector<int>& cover)
     for (auto& n: cover) n = 0;
 }
 
-void goalAllocator::step2()
+void goalAllocator::step2(int& step)
 {
-    for (int r = 0; r < numOfRows; r++)
+    for (int r = 0; r < numOfRows_; r++)
     {
-        for (int c = 0; c < numOfCols; c++)
+        for (int c = 0; c < numOfCols_; c++)
         {
             if (costMatrix_[r][c] == 0 && RowCover[r] == 0 && ColCover[c] == 0) 
             {
@@ -105,27 +114,27 @@ void goalAllocator::step2()
     }
 }
 
-void goalAllocator::step3()
+void goalAllocator::step3(int& step)
 {
     int colCount;
-    for (int i = 0; i < numOfRows; i++)
+    for (int i = 0; i < numOfRows_; i++)
     {
-        for (int j = 0; j < numOfCols; j++)
+        for (int j = 0; j < numOfCols_; j++)
         {
             if (maskMatrix_[i][j] == 1)
                 ColCover[j] = 1;
         }
     }
     colCount = 0;
-    for (int j = 0; j < numOfCols; j++)
+    for (int j = 0; j < numOfCols_; j++)
     {
         if (ColCover[j] == 1)
             colCount++;
     }
-    if (colCount >= numOfCols || colCount >= numOfRows)
-        //step 7
+    if (colCount >= numOfCols_ || colCount >= numOfRows_)
+        step = 7;
     else
-        //step 4
+        step = 4;
 }
 
 void goalAllocator::find_a_zero(int& row, int& col)
@@ -175,7 +184,7 @@ void goalAllocator::find_star_in_row(int row,
             col = c;
 }
 
-void goalAllocator::step4()
+void goalAllocator::step4(int path_row_0, int path_col_0, int& step)
 {
     int row = -1;
     int col = -1;
@@ -245,10 +254,7 @@ void goalAllocator::erase_primes()
                 val = 0;
 }
 
-void goalAllocator::step5(std::vector<std::vector<int>>& path, 
-           int path_row_0, 
-           int path_col_0,
-           int& step)
+void goalAllocator::step5(std::vector<std::vector<int>> path, int path_row_0, int path_col_0, int& step)
 {
     int r = -1;
     int c = -1;
@@ -283,7 +289,7 @@ void goalAllocator::step5(std::vector<std::vector<int>>& path,
     step = 3;
 }
 
-void goalAllocator::find_smallest(float& minval)
+void goalAllocator::find_smallest(int& minval)
 {
     for (unsigned r = 0; r < costMatrix_.size(); r++)
         for (unsigned c = 0; c < costMatrix_.size(); c++)
@@ -292,9 +298,9 @@ void goalAllocator::find_smallest(float& minval)
                     minval = costMatrix_[r][c];
 }
 
-void step6(int& step)
+void goalAllocator::step6(int& step)
 {
-    float minval = std::numeric_limits<float>::max();
+    int minval = std::numeric_limits<int>::max();
     find_smallest(minval);
     
     int sz = costMatrix_.size();

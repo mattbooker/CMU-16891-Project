@@ -6,14 +6,17 @@
 #include "ShapeDecomposer.hpp"
 #include "TrajectoryOptimizer.hpp"
 #include "CBSSolver.hpp"
+#include "goalAllocator.hpp"
+#include <random>
 
 using namespace casadi;
 
 int main(int argv, char *argc[])
 {
+    // srand(time(0));
     auto beg = std::chrono::high_resolution_clock::now();
 
-    const int numAgents = 16;
+    const int numAgents = 196;
     const BoundingBox envBbox = {{-5, -5, -5}, {5, 5, 5}};
     const float sphereRadius = 5.0;
 
@@ -34,9 +37,9 @@ int main(int argv, char *argc[])
     
     std::vector<Point3> starts;
 
-    for (int i = -2; i < 2; i++)
+    for (int i = -7; i < 7; i++)
     {
-        for (int j = -2; j < 2; j++)
+        for (int j = -7; j < 7; j++)
         {
             starts.push_back({2*i, 2*j, -2});
         }
@@ -44,10 +47,35 @@ int main(int argv, char *argc[])
     printf("Num of starts: %d \n", starts.size());
     printf("Num of ends: %d\n", endpoints.size());
 
+    //random starts
+    // int max_x = envBbox.max.x;
+    // int max_y = envBbox.max.y;
+    // int max_z = envBbox.max.z;
+    // int min_x = envBbox.min.x;
+    // int min_y = envBbox.min.y;
+    // int min_z = envBbox.min.z;
+    // for (int i = 0; i < numAgents; i++)
+    // {
+    //     int rand_x = rand()%(max_x-min_x + 1) + min_x;
+    //     int rand_y = rand()%(max_y-min_y + 1) + min_y;
+    //     int rand_z = rand()%(max_z-min_z + 1) + min_z;
+    //     starts.push_back({rand_x, rand_y, rand_z});
+    // }
 
-    std::vector<std::vector<float>> costMatrix;
+    // std::vector<Point3> endpoints;
+
+    // for (int i = 0; i < numAgents; i++)
+    // {
+    //     int rand_x = rand()%(max_x-min_x + 1) + min_x;
+    //     int rand_y = rand()%(max_y-min_y + 1) + min_y;
+    //     int rand_z = rand()%(max_z-min_z + 1) + min_z;
+    //     endpoints.push_back({rand_x, rand_y, rand_z});
+    // }
+
+
+    std::vector<std::vector<int>> costMatrix;
     for (int i = 0; i < numAgents; i++){
-        costMatrix.push_back(std::vector<float>());
+        costMatrix.push_back(std::vector<int>());
         for (int j = 0; j < endpoints.size(); j++){
             costMatrix[i].push_back(int(powf(powf(endpoints[j].x - starts[i].x, 2) 
                                     + powf(endpoints[j].y - starts[i].y, 2) 
@@ -67,14 +95,13 @@ int main(int argv, char *argc[])
         printf("},\n");
     }
 
-    for (int i = 0; i<endpoints.size(); i++)
-    {
-        printf("%f, %f, %f \n", endpoints[i].x, endpoints[i].y, endpoints[i].z);
-    }
-
+    // for (int i = 0; i<endpoints.size(); i++)
+    // {
+    //     printf("%f, %f, %f \n", endpoints[i].x, endpoints[i].y, endpoints[i].z);
+    // }
 
     std::vector<std::vector<int>> assignment;
-    std::ifstream file_in("../assignments/16_agents_assignment.txt");
+    std::ifstream file_in("../assignments/196_agents_assignment.txt");
     if (!file_in) {/*error*/}
 
     std::string line;
@@ -90,6 +117,19 @@ int main(int argv, char *argc[])
             assignment.back().push_back(x); // Add it to the last sub-vector of `vec`.
     }
 
+    // goalAllocator hungarian(costMatrix, numAgents, numAgents);
+    // printf("Calling solve \n");
+    // std::vector<std::vector<int>> assignment = hungarian.solve();
+
+    // std::vector< std::vector<int> >::iterator row;
+    // std::vector<int>::iterator col;
+    // for (row = assignment.begin(); row != assignment.end(); row++) {
+    //     for (col = row->begin(); col != row->end(); col++) {
+    //         printf("%d ", col);
+    //     }
+    //     printf("\n");
+    // }
+
     std::vector<Point3> endpoints2;
     // std::vector<int> idx;
     for (int i = 0; i < numAgents; i++){
@@ -102,12 +142,6 @@ int main(int argv, char *argc[])
         }
     }
 
-    // for(auto& row:assignment){
-    //     for(auto& col:row){
-    //         if (col == 1)   
-    //            endpoints2.push_back(endpoints[j]); 
-    //     }
-    // }
     
     // printf("Endpoints size: %d\n", endpoints.size());
     // for (int i = 0; i < idx.size(); i++)
